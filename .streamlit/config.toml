@@ -1,0 +1,11 @@
+# Security (blueprint §14.5): the app is reachable only from this laptop.
+[server]
+address = "127.0.0.1"
+port = 8501
+enableCORS = true
+enableXsrfProtection = true
+
+[browser]
+serverAddress = "localhost"
+# No usage statistics are sent to Streamlit.
+gatherUsageStats = false

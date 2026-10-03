@@ -1,0 +1,17 @@
+8. Decisions I need from you
+
+Subjects and grades: chemistry only, or physics, maths and biology too? Which classes and board (CBSE, ICSE, State, JEE/NEET)? - for now board is State, but I don't think that should bother you or here while building this projects, because it would all be just I give the syllabus and those topics snapshots and you have those details of chapters from textbooks. Then you would RAG on it alongwith building the simulations of experiments for teaching them
+
+Primary user: you teaching live (screen share or projector), students self-studying at home, or both? - for now its while teaching at home to the students
+
+Language: English only, or Hindi or another language too, for narration and chat? - English only, Hindi and Marathi also add while narrations or while teaching, but that non-English language should be just additional label or narrations and that too when asked specially to give in those languages
+
+AI provider and budget: OK with Claude API as the main model? Do you have API keys, and roughly what monthly budget? (The MVP can run at low cost. Videos rendered with Manim are free apart from the LLM call.) - I have OpenAI API keys purchased, but please add or build config such that it has various options of even using other ollama or other free models from Hugging face as per the need and requirements. I know there may come some constraints but you should be aware of those constraints of which model has what capacities and how to build them and for what purpose which models to use. Mostly I want to optimize on cost of model pricing that I may face and so want to keep very low on those budgets 
+
+Hosting: run on your laptop first and deploy later, or cloud from day one? - first from laptop as I am the teacher so will explain myself from my laptops. Later to teach students or build app and that time will see somethings to use cloud or not or how to do it will see later
+
+Python setup: which Python version do you have (I'd target 3.11+)? Manim also needs FFmpeg and optionally LaTeX on Windows, and I can walk you through installing them. - please you being software expert, see which stable versions will be good and best to go with all my requirements and complete software stack that I will be using for my this projects
+
+Reply with your answers and any changes to the stack or phases. Once you approve, I'll set up the repo and start Phase 1. - so please be very precise and careful while going with abpve requirementns and providing and moving in that directions. 
+
+Pplease first make one folder in the repo, and add all the plan of executions that we would be moving ahead in form of word documents with workflow and IAD flowchart of this complete stack projects for all our all time references

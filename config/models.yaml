@@ -1,0 +1,100 @@
+# AI model routing (blueprint §7). Edit this file to change models — no code changes needed.
+#
+# Model references are "<provider>/<model>". Each task tries `primary`, then each of `fallbacks`.
+# Paid models MUST have a price below (used for the budget guard and the cost dashboard).
+#
+# Prices: USD per 1 million tokens, standard tier. Verified 2026-10-03 against the OpenAI pricing page
+# AND LiteLLM 1.102.1's bundled price list (both agreed). Re-check with:
+#     uv run python -m app.tools.verify_models
+
+budget:
+  monthly_usd_cap: 5.00              # ATS_MONTHLY_BUDGET_USD in .env overrides this
+  premium_requires_approval: true    # premium_models are never used without explicit approval
+
+# Network egress allow-list (blueprint §14.5): model calls to any other host are refused.
+# Add a host here only when you enable the matching provider.
+allowed_hosts:
+  - "127.0.0.1:11434"    # Ollama on this laptop
+  - "api.openai.com"
+
+providers:
+  ollama:
+    litellm_prefix: ollama_chat
+    api_base: http://127.0.0.1:11434
+    paid: false
+  openai:
+    litellm_prefix: openai
+    api_base: https://api.openai.com/v1
+    secret: openai                   # stored in Windows Credential Manager
+    paid: true
+  # Optional providers — uncomment, add the host to allowed_hosts, and store the key:
+  # huggingface:
+  #   litellm_prefix: openai          # Hugging Face router is OpenAI-compatible
+  #   api_base: https://router.huggingface.co/v1
+  #   secret: huggingface
+  #   paid: true
+
+premium_models:
+  - openai/gpt-5.2
+
+prices:
+  openai/gpt-5-nano:    { input_per_million: 0.05, output_per_million: 0.40 }
+  openai/gpt-5.4-mini:  { input_per_million: 0.75, output_per_million: 4.50 }
+  openai/gpt-5.2:       { input_per_million: 1.75, output_per_million: 14.00 }
+
+# Local models on this laptop (RTX 3050, 4 GB VRAM):
+#   qwen3:4b-instruct     text (Qwen3-4B-Instruct-2507, answers directly)
+#   qwen3-vl:4b           OCR / vision            (Phase 1)
+#   qwen3-embedding:0.6b  embeddings for RAG      (Phase 1)
+# Note: plain "qwen3:4b" is the Thinking-2507 model — it always reasons first (slow), so it is not used.
+
+tasks:
+  # ---- Phase 0: connectivity tests ----
+  test_local:
+    primary: ollama/qwen3:4b-instruct
+    max_tokens: 400
+  test_openai:
+    primary: openai/gpt-5-nano
+    max_tokens: 1000                 # GPT-5 models count hidden reasoning tokens inside this limit
+    reasoning_effort: minimal
+
+  # ---- Phase 1+ (routing per blueprint §7.3; wired up as features are built) ----
+  tutor_chat:
+    primary: ollama/qwen3:4b-instruct
+    fallbacks: [openai/gpt-5-nano]
+    max_tokens: 800
+    reasoning_effort: minimal
+  ocr:
+    primary: ollama/qwen3-vl:4b
+    fallbacks: [openai/gpt-5-nano]
+    max_tokens: 2000
+    cache: true
+  lesson_plan:
+    primary: openai/gpt-5.4-mini
+    fallbacks: [ollama/qwen3:4b-instruct]
+    max_tokens: 4000
+    reasoning_effort: low
+  manim_code:
+    primary: openai/gpt-5.4-mini
+    fallbacks: [openai/gpt-5.2]      # premium: asks before use
+    max_tokens: 6000
+    reasoning_effort: low
+  simulation_code:
+    primary: openai/gpt-5.4-mini
+    fallbacks: [openai/gpt-5.2]
+    max_tokens: 6000
+    reasoning_effort: low
+  quiz:
+    primary: openai/gpt-5-nano
+    fallbacks: [ollama/qwen3:4b-instruct]
+    max_tokens: 2500
+    reasoning_effort: low
+  translate:
+    primary: openai/gpt-5.4-mini
+    max_tokens: 3000
+    reasoning_effort: low
+  validate:
+    primary: openai/gpt-5-nano
+    fallbacks: [ollama/qwen3:4b-instruct]
+    max_tokens: 1500
+    reasoning_effort: low

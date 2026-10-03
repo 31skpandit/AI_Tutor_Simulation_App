@@ -1,0 +1,24 @@
+# Secrets and local settings — never commit
+.env
+*.key
+all_key.key
+Points to track.txt
+
+# Runtime data (database, vector store, uploads, generated media, logs)
+data/
+media/
+logs/
+
+# Python / tooling
+.venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+~$*.docx

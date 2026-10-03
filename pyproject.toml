@@ -1,0 +1,45 @@
+[project]
+name = "ai-teaching-studio"
+version = "0.1.0"
+description = "AI-assisted teaching studio: textbook-grounded tutor, simulations, chemistry visuals and animated lessons."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+# Direct dependencies are pinned EXACTLY (blueprint §14.3). Transitive ones are pinned,
+# with SHA-256 hashes, in uv.lock. Only add packages with `uv add <name>==<version>`.
+dependencies = [
+    # LiteLLM: SDK only (no proxy extra). Must be a clean release >= 1.83.0; 1.82.7 / 1.82.8 were malicious.
+    "litellm==1.102.1",
+    "streamlit==1.64.0",
+    "sqlmodel==0.0.47",
+    "pydantic-settings==2.15.0",
+    "pyyaml==6.0.3",
+    "keyring==25.7.0",
+    "loguru==0.7.3",
+    "httpx==0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "pip-audit==2.10.1",
+    "pytest==9.1.1",
+    "ruff==0.16.9",
+]
+
+[tool.uv]
+package = false
+# Release cooldown (blueprint §14.3): never resolve anything published after this instant.
+# When upgrading, move this date forward to (today - 7 days) and follow the upgrade procedure in README.
+exclude-newer = "2026-09-26T00:00:00Z"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]  # line length is handled by `ruff format`; long message strings are left intact

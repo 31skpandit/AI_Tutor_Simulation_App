@@ -1,0 +1,13 @@
+{
+  "name": "ai-teaching-studio-docs",
+  "private": true,
+  "description": "Generators for docs/diagrams and the project blueprint .docx",
+  "scripts": {
+    "diagrams": "node diagrams.js ../diagrams",
+    "blueprint": "node gen_doc.js ../.."
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "docx": "9.8.1"
+  }
+}
