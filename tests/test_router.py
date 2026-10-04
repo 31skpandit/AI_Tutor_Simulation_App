@@ -146,6 +146,24 @@ def test_non_allowlisted_host_is_refused(config, engine):
     assert all(not c["route"].startswith("openai") for c in backend.calls)
 
 
+def test_ollama_options_are_passed_to_the_backend(config, engine):
+    from app.llm.router import LLMRouter
+
+    config.tasks["local_only"].ollama_options = {"num_ctx": 8192}
+    backend = FakeBackend()
+    LLMRouter(config, backend, engine, secret_getter=lambda n: None).complete("local_only", MSG)
+    assert backend.calls[0]["extra_options"] == {"num_ctx": 8192}
+
+
+def test_embedding_task_rejects_chat_use_and_vice_versa(make_router):
+    router = make_router()
+    with pytest.raises(ValueError):
+        router.complete("embed", MSG)
+    with pytest.raises(ValueError):
+        router.embed("local_only", ["x"])
+    assert len(router.embed("embed", ["a", "b"]).vectors) == 2
+
+
 def test_unknown_task_raises(make_router):
     with pytest.raises(KeyError):
         make_router().complete("nope", MSG)

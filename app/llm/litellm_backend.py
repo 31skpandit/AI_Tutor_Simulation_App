@@ -13,7 +13,7 @@ os.environ["LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS"] = "True"
 
 import litellm  # noqa: E402
 
-from app.llm.backend import BackendResult  # noqa: E402
+from app.llm.backend import BackendResult, EmbedResult  # noqa: E402
 
 litellm.telemetry = False
 litellm.drop_params = True  # silently drop parameters a given model does not support
@@ -38,6 +38,8 @@ class LiteLLMBackend:
         temperature: float | None,
         reasoning_effort: str | None,
         timeout_s: float,
+        extra_options: dict | None = None,
+        json_output: bool = False,
     ) -> BackendResult:
         kwargs: dict = {
             "model": route,
@@ -57,6 +59,10 @@ class LiteLLMBackend:
             reasoning_effort = "minimal"
         if reasoning_effort is not None:
             kwargs["reasoning_effort"] = reasoning_effort
+        if json_output:
+            kwargs["response_format"] = {"type": "json_object"}  # LiteLLM maps this to Ollama format=json
+        if route.startswith("ollama") and extra_options:
+            kwargs.update(extra_options)  # LiteLLM forwards these as Ollama "options" (e.g. num_ctx)
         response = litellm.completion(**kwargs)
         text = response.choices[0].message.content or ""
         text = _THINK_BLOCK.sub("", text).strip()
@@ -66,6 +72,24 @@ class LiteLLMBackend:
             input_tokens=int(getattr(usage, "prompt_tokens", 0) or 0),
             output_tokens=int(getattr(usage, "completion_tokens", 0) or 0),
         )
+
+    def embed(
+        self,
+        *,
+        route: str,
+        texts: list[str],
+        api_base: str,
+        api_key: str | None,
+        timeout_s: float,
+    ) -> EmbedResult:
+        kwargs: dict = {"model": route, "input": texts, "api_base": api_base, "timeout": timeout_s}
+        if api_key:
+            kwargs["api_key"] = api_key
+        response = litellm.embedding(**kwargs)
+        items = sorted(response.data, key=lambda d: d["index"] if isinstance(d, dict) else d.index)
+        vectors = [list(d["embedding"] if isinstance(d, dict) else d.embedding) for d in items]
+        usage = getattr(response, "usage", None)
+        return EmbedResult(vectors=vectors, input_tokens=int(getattr(usage, "prompt_tokens", 0) or 0))
 
 
 def bundled_price(model: str) -> tuple[float, float] | None:

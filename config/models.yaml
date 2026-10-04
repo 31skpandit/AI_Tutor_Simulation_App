@@ -20,6 +20,7 @@ allowed_hosts:
 providers:
   ollama:
     litellm_prefix: ollama_chat
+    litellm_embedding_prefix: ollama
     api_base: http://127.0.0.1:11434
     paid: false
   openai:
@@ -44,46 +45,99 @@ prices:
 
 # Local models on this laptop (RTX 3050, 4 GB VRAM):
 #   qwen3:4b-instruct     text (Qwen3-4B-Instruct-2507, answers directly)
-#   qwen3-vl:4b           OCR / vision            (Phase 1)
-#   qwen3-embedding:0.6b  embeddings for RAG      (Phase 1)
-# Note: plain "qwen3:4b" is the Thinking-2507 model — it always reasons first (slow), so it is not used.
+#   qwen3-vl:4b-instruct  OCR / vision (Qwen3-VL-4B-Instruct)
+#   qwen3-embedding:0.6b  embeddings for search (1024 dimensions)
+# Note: plain "qwen3:4b" and "qwen3-vl:4b" are the *Thinking* models — they always reason first
+# (slow, and they ignore the thinking-off switch), so they are not used.
 
 tasks:
   # ---- Phase 0: connectivity tests ----
   test_local:
     primary: ollama/qwen3:4b-instruct
-    max_tokens: 400
+    max_tokens: 800
   test_openai:
     primary: openai/gpt-5-nano
     max_tokens: 1000                 # GPT-5 models count hidden reasoning tokens inside this limit
     reasoning_effort: minimal
 
-  # ---- Phase 1+ (routing per blueprint §7.3; wired up as features are built) ----
-  tutor_chat:
+  # ---- Phase 1: syllabus ingestion + textbook-grounded tutor ----
+  ocr:                               # one textbook page image → text
+    # Measured on a real A4 textbook page at 1600 px (RTX 3050 4 GB): 2b-instruct ≈ 21 s/page;
+    # 4b-instruct ≈ 64–178 s/page (does not fit in GPU memory) with no better text. Thinking models: much slower.
+    primary: ollama/qwen3-vl:2b-instruct
+    fallbacks: [openai/gpt-5-nano]   # ≈ $0.0003 per page, used only if the local model fails
+    max_tokens: 3000
+    temperature: 0
+    reasoning_effort: minimal        # Ollama: thinking off; OpenAI: minimal reasoning
+    ollama_options:
+      num_ctx: 8192                  # page image (~1,900 tokens) + prompt + up to 3,000 output tokens
+  ocr_retry:                         # used automatically only when the OCR output gets stuck repeating a line
+    primary: ollama/qwen3-vl:2b-instruct
+    fallbacks: [openai/gpt-5-nano]
+    max_tokens: 3000
+    temperature: 0
+    reasoning_effort: minimal
+    ollama_options:
+      num_ctx: 8192
+      repeat_penalty: 1.1            # measured: fixes the loop on the real page without losing text
+  ocr_cloud:                         # "Re-read with cloud model" button — only for pages you choose
+    # Benchmarked on the owner's pages 3, 4, 5, 16: gpt-5.4-mini was best (all subscripts, correct
+    # 7-column table, no invented figure details) at ≈ $0.005/page; gpt-5-nano lost subscripts and
+    # flattened tables (not good enough for chemistry). No fallback: if it fails, the page is unchanged.
+    primary: openai/gpt-5.4-mini
+    max_tokens: 6000
+    reasoning_effort: low
+  enrich:                            # page summary + table/figure descriptions (extra search entries)
     primary: ollama/qwen3:4b-instruct
     fallbacks: [openai/gpt-5-nano]
-    max_tokens: 800
+    max_tokens: 1200
+    temperature: 0.1
     reasoning_effort: minimal
-  ocr:
-    primary: ollama/qwen3-vl:4b
+    json_output: true
+    ollama_options:
+      num_ctx: 8192
+  embed:                             # embeddings for search. NO fallbacks: vectors of different models don't mix
+    kind: embedding
+    primary: ollama/qwen3-embedding:0.6b
+  tutor_answer:                      # answers from textbook extracts, English
+    primary: ollama/qwen3:4b-instruct
     fallbacks: [openai/gpt-5-nano]
-    max_tokens: 2000
-    cache: true
-  lesson_plan:
+    max_tokens: 900
+    temperature: 0.2
+    reasoning_effort: minimal
+  tutor_answer_cloud:                # optional "Cloud" answer model on the AI Tutor page (≈ $0.001 per answer)
+    # Measured: "Which bases are listed in the acidity table?" — local 4B model said "not covered" although
+    # the table was in the evidence; gpt-5-nano and gpt-5.4-mini listed all 7 bases correctly.
+    primary: openai/gpt-5-nano
+    fallbacks: [ollama/qwen3:4b-instruct]
+    max_tokens: 2500
+    reasoning_effort: low
+  tutor_answer_indic:                # Hindi / Marathi, only when you ask (small local models are weak here)
     primary: openai/gpt-5.4-mini
     fallbacks: [ollama/qwen3:4b-instruct]
-    max_tokens: 4000
+    max_tokens: 1500
     reasoning_effort: low
+
+  # ---- Phase 2: lessons ----
+  lesson_plan:                       # textbook passages → structured lesson (JSON); generated once, then edited
+    primary: openai/gpt-5.4-mini
+    fallbacks: [ollama/qwen3:4b-instruct]
+    max_tokens: 8000
+    reasoning_effort: low
+    json_output: true
+    ollama_options:
+      num_ctx: 16384                 # 8 passages + instructions + long JSON answer
   manim_code:
     primary: openai/gpt-5.4-mini
     fallbacks: [openai/gpt-5.2]      # premium: asks before use
     max_tokens: 6000
     reasoning_effort: low
-  simulation_code:
+  simulation_code:                   # p5.js sketch; checked (safety, structure, node --check) and auto-fixed ≤ 2×
     primary: openai/gpt-5.4-mini
-    fallbacks: [openai/gpt-5.2]
-    max_tokens: 6000
+    fallbacks: [openai/gpt-5.2]      # premium: never used without approval
+    max_tokens: 12000
     reasoning_effort: low
+    cache: false                     # "Regenerate" must produce a new version
   quiz:
     primary: openai/gpt-5-nano
     fallbacks: [ollama/qwen3:4b-instruct]

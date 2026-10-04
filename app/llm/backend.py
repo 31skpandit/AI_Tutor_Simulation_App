@@ -11,6 +11,12 @@ class BackendResult:
     output_tokens: int
 
 
+@dataclass(frozen=True)
+class EmbedResult:
+    vectors: list[list[float]]
+    input_tokens: int
+
+
 class Backend(Protocol):
     def complete(
         self,
@@ -23,4 +29,16 @@ class Backend(Protocol):
         temperature: float | None,
         reasoning_effort: str | None,
         timeout_s: float,
+        extra_options: dict | None = None,
+        json_output: bool = False,
     ) -> BackendResult: ...
+
+    def embed(
+        self,
+        *,
+        route: str,
+        texts: list[str],
+        api_base: str,
+        api_key: str | None,
+        timeout_s: float,
+    ) -> EmbedResult: ...

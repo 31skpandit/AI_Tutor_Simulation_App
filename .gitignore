@@ -4,6 +4,9 @@
 all_key.key
 Points to track.txt
 
+# Textbook files you add (copyrighted, large) — kept on this laptop only
+source/
+
 # Runtime data (database, vector store, uploads, generated media, logs)
 data/
 media/

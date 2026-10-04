@@ -82,6 +82,30 @@ if right.button("Reload configuration"):
     get_router.clear()
     st.rerun()
 
+# ---------------- Ingestion ----------------
+st.subheader("Textbook ingestion settings")
+settings = common.get_settings()
+st.markdown(
+    f"""
+| Setting (`.env` name) | Value |
+|---|---|
+| Source folder (`ATS_SOURCE_DIR`) | `{settings.source_dir}` |
+| Auto-process new files (`ATS_AUTO_INGEST`) | {settings.auto_ingest} |
+| Review required before search (`ATS_REQUIRE_REVIEW`) | {settings.require_review} |
+| PDF page read directly if it has ≥ N words (`ATS_PDF_TEXT_MIN_WORDS`) | {settings.pdf_text_min_words} |
+| OCR image size, longest side px (`ATS_OCR_MAX_IMAGE_PX`) | {settings.ocr_max_image_px} |
+| Search passage size / overlap, characters (`ATS_CHUNK_CHARS` / `ATS_CHUNK_OVERLAP_CHARS`) | {settings.chunk_chars} / {settings.chunk_overlap_chars} |
+| Page summaries + table/figure descriptions when indexing (`ATS_ENRICH_PAGES`) | {settings.enrich_pages} |
+| Reuse answers to very similar questions (`ATS_SEMANTIC_CACHE`) | {settings.semantic_cache} |
+| Similarity needed to reuse an answer (`ATS_SEMANTIC_CACHE_MIN`) | {settings.semantic_cache_min} |
+"""
+)
+st.caption("Change these in `.env`, then restart the app.")
+if st.button("Forget all reused answers", help="Clears the 'similar question' answer cache"):
+    from app.rag import answer_cache
+
+    st.success(f"Removed {answer_cache.clear(router.engine)} stored answer(s).")
+
 # ---------------- Call log ----------------
 st.subheader("Recent AI calls")
 with Session(router.engine) as session:

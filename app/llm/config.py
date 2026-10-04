@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, model_validator
 
 class ProviderConfig(BaseModel):
     litellm_prefix: str  # LiteLLM route prefix, e.g. "ollama_chat" or "openai"
+    litellm_embedding_prefix: str | None = None  # e.g. "ollama" (embeddings use a different route)
     api_base: str
     secret: str | None = None  # name in Credential Manager; None = no key needed
     paid: bool = False
@@ -25,6 +26,7 @@ class Price(BaseModel):
 
 
 class TaskConfig(BaseModel):
+    kind: Literal["chat", "embedding"] = "chat"
     primary: str
     fallbacks: list[str] = []
     max_tokens: int = Field(default=800, gt=0)
@@ -32,6 +34,10 @@ class TaskConfig(BaseModel):
     # OpenAI reasoning models: how much hidden reasoning to spend. For Ollama, None/"minimal" = thinking off.
     reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = None
     cache: bool = True
+    # Ask the model for a JSON object (OpenAI response_format / Ollama format=json). Prompt must mention JSON.
+    json_output: bool = False
+    # Extra Ollama runtime options for this task, e.g. {num_ctx: 8192}. Ignored by non-Ollama providers.
+    ollama_options: dict[str, int | float | str] = {}
 
     @property
     def chain(self) -> list[str]:
@@ -58,6 +64,11 @@ class ModelsConfig(BaseModel):
             if provider.host not in self.allowed_hosts:
                 errors.append(f"provider '{name}' host '{provider.host}' is not in allowed_hosts")
         for task_name, task in self.tasks.items():
+            if task.kind == "embedding" and task.fallbacks:
+                errors.append(
+                    f"task '{task_name}': embedding tasks cannot have fallbacks "
+                    "(vectors from different models are not comparable)"
+                )
             for ref in task.chain:
                 provider_name, _, model = ref.partition("/")
                 if not model or provider_name not in self.providers:

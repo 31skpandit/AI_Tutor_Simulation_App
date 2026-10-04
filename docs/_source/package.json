@@ -4,7 +4,8 @@
   "description": "Generators for docs/diagrams and the project blueprint .docx",
   "scripts": {
     "diagrams": "node diagrams.js ../diagrams",
-    "blueprint": "node gen_doc.js ../.."
+    "blueprint": "node gen_doc.js ../..",
+    "interactions": "node gen_interactions.js"
   },
   "dependencies": {
     "@resvg/resvg-js": "2.6.2",

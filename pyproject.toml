@@ -16,6 +16,11 @@ dependencies = [
     "keyring==25.7.0",
     "loguru==0.7.3",
     "httpx==0.28.1",
+    "pymupdf==1.28.2",
+    "python-docx==1.2.0",
+    "pillow==12.3.0",
+    "numpy==2.5.3",
+    "rdkit==2026.3.6",
 ]
 
 [dependency-groups]

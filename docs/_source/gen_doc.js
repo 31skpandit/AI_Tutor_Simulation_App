@@ -1,4 +1,4 @@
-// Builds docs/AI_Teaching_Studio_Project_Blueprint_v1.2.docx
+// Builds docs/AI_Teaching_Studio_Project_Blueprint_v1.5.docx
 const fs = require('fs');
 const path = require('path');
 const {
@@ -9,7 +9,7 @@ const {
 
 const ROOT = process.argv[2];
 const DIAG = path.join(ROOT, 'docs', 'diagrams');
-const OUTFILE = path.join(ROOT, 'docs', 'AI_Teaching_Studio_Project_Blueprint_v1.2.docx');
+const OUTFILE = path.join(ROOT, 'docs', 'AI_Teaching_Studio_Project_Blueprint_v1.5.docx');
 
 const BLUE = '1F3A93', INK = '1F2937', MUTE = '4B5563';
 const PORTRAIT_W = 9026, LANDSCAPE_W = 14678;
@@ -93,7 +93,7 @@ function figure(name, maxW, maxH, caption) {
 }
 const pb = () => new Paragraph({ children: [new PageBreak()] });
 
-const header = () => ({ default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'AI Teaching Studio — Project Blueprint v1.2', size: 16, color: MUTE })] })] }) });
+const header = () => ({ default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'AI Teaching Studio — Project Blueprint v1.5', size: 16, color: MUTE })] })] }) });
 const footer = () => ({ default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Page ', size: 16, color: MUTE }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: MUTE })] })] }) });
 const portrait = children => ({ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } }, headers: header(), footers: footer(), children });
 const landscape = children => ({ properties: { page: { size: { width: 11906, height: 16838, orientation: PageOrientation.LANDSCAPE }, margin: { top: 1080, bottom: 1080, left: 1080, right: 1080 } } }, headers: header(), footers: footer(), children });
@@ -106,7 +106,7 @@ sections.push(portrait([
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'AI Teaching Studio', bold: true, size: 64, color: BLUE })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 200, after: 600 }, children: [new TextRun({ text: 'Project Blueprint: Requirements, Architecture, Workflows & Execution Plan', size: 30, color: INK })] }),
-  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Version 1.2 — Approved; Phase 0 complete', size: 24, color: MUTE })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Version 1.5 — Phase 2 built', size: 24, color: MUTE })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '3 October 2026', size: 24, color: MUTE })] }),
   new Paragraph({ spacing: { before: 1600 }, children: [] }),
   ...table(['Item', 'Detail'], [
@@ -114,14 +114,17 @@ sections.push(portrait([
     ['Owner / teacher', 'Santosh'],
     ['Prepared by', 'Claude Code (AI engineering assistant), with the owner'],
     ['Codebase location', 'D:\\Santosh\\Data Science\\Entrepreneur journey\\Tuition study app'],
-    ['Status', 'Approved by owner (03-Oct-2026). Phase 0 complete — live OpenAI test pending the owner’s API key'],
+    ['Status', 'Approved by owner (03-Oct-2026). Phase 0 complete; Phase 1 complete with improvements (04-Oct-2026); Phase 2 built with 3 pilot lessons awaiting owner review (05-Oct-2026). Next: Phase 3 (videos & narration)'],
   ], [1, 3]),
   pb(),
   H1('Document Control'),
   ...table(['Version', 'Date', 'Change', 'Status'], [
     ['1.0', '03-Oct-2026', 'First complete blueprint: requirements from owner answers, architecture, model strategy, workflows, phased plan', 'Superseded'],
     ['1.1', '03-Oct-2026', 'Owner security guidelines after the March 2026 LiteLLM supply-chain incident: new Section 14 (pinning, hash-locked installs, API-key isolation, egress control); updates to stack, setup steps, NFR-06, Phase 0, risks and decisions D10–D11', 'Superseded'],
-    ['1.2', '03-Oct-2026', 'Owner approved the plan. Phase 0 built and verified: exact installed versions (§5.1); local text model changed to qwen3:4b-instruct (§7.2); OpenAI models and prices fixed after cross-checking two sources (§7.3); real setup steps (§6.2) and configuration (§7.5); actual folder structure (§11); progress tracker (§12.2); LiteLLM hardening details (§14.6); decisions D12–D14', 'Current'],
+    ['1.5', '05-Oct-2026', 'Phase 2 built (§8.6): lesson planner, equation checker, molecules 2D/3D, checked AI simulations, Lesson Studio, Teach Mode; 3 pilot lessons generated; stack table and pinned versions (rdkit, p5.js, 3Dmol.js), data model, folder structure, progress, decisions D24–D27 and open items updated. Learning log docs/Claude Interactions.docx started', 'Current'],
+    ['1.4', '04-Oct-2026', 'Phase 1 complete (owner reviewed the chapter). Improvements built and measured (§8.5): review preview & lossless table repair, OCR prompt clean-up, optional cloud re-read (gpt-5.4-mini, benchmarked), page summaries & table/figure descriptions as search aids only, answer-model switch, semantic answer cache (calibrated), stale-index bug fixed, schema migration; routing table, data model, folder structure, progress, decisions D19–D23 and open items updated', 'Superseded'],
+    ['1.3', '04-Oct-2026', 'Phase 1 built and tested on the owner’s chapter: new §8.4 (ingestion & tutor as built, with measurements); 3-level de-duplication; OCR model changed to qwen3-vl:2b-instruct (§7.2, D16); vector store SQLite + NumPy (D15, for approval); new packages pymupdf, python-docx, pillow, numpy (§5.1); data model, folder structure, progress tracker, decisions D15–D18 and open items updated; diagrams updated', 'Superseded'],
+    ['1.2', '03-Oct-2026', 'Owner approved the plan. Phase 0 built and verified: exact installed versions (§5.1); local text model changed to qwen3:4b-instruct (§7.2); OpenAI models and prices fixed after cross-checking two sources (§7.3); real setup steps (§6.2) and configuration (§7.5); actual folder structure (§11); progress tracker (§12.2); LiteLLM hardening details (§14.6); decisions D12–D14', 'Superseded'],
   ], [1, 1.4, 5, 1.6]),
   P('How to use this document: it is the single reference for **what** we are building, **why**, and **how**. When a decision changes, update the Decision Log (Section 16), bump the version and keep the old file for history. Diagrams are also saved as high-resolution PNG and editable SVG in `docs/diagrams/`.'),
   new TableOfContents('Contents', { hyperlink: true, headingStyleRange: '1-2' }),
@@ -214,7 +217,7 @@ sections.push(portrait([
     ['Application', 'Cost & Budget Guard', 'Logs every model call, enforces the monthly cap, serves cached responses'],
     ['AI Gateway', 'LiteLLM', 'One Python API over Ollama, OpenAI, Hugging Face, Gemini, Groq, OpenRouter; retries and fallbacks'],
     ['Engines', 'Manim, RDKit, py3Dmol, chempy, HTML/JS sandbox, TTS, PyMuPDF', 'Deterministic rendering and processing on the laptop'],
-    ['Data', 'SQLite, ChromaDB, file storage, cache', 'All data stays in the project’s `data/` folder on the laptop'],
+    ['Data', 'SQLite (documents, pages, passages + vectors, jobs, cost log, cache), file storage', 'All data stays on the laptop: `data/` (database) and `source/` (your files) — both excluded from Git'],
   ], [1.3, 2.1, 4.6]),
 
   H1('5. Technology Stack and Versions'),
@@ -228,22 +231,22 @@ sections.push(portrait([
     ['Supply-chain checks', '**pip-audit** (run via `uvx`)', 'Checks locked dependencies against known-vulnerability databases before each upgrade and phase sign-off', 'Free'],
     ['Local AI runtime', '**Ollama** (installed: 0.34.4)', 'Runs local models on the RTX 3050 / CPU; already has OCR and embedding models', 'Free'],
     ['Cloud AI', '**OpenAI** (owner has keys) + optional Hugging Face, Gemini, Groq, OpenRouter', 'Higher-quality code generation, translation and vision when local models are not enough', 'Pay-per-use / free tiers'],
-    ['Vector store', '**ChromaDB** (embedded, persistent)', 'No server; stores vectors and metadata on disk', 'Free'],
+    ['Vector store', '**SQLite + NumPy** (decision D15; ChromaDB optional later)', 'Exact cosine search over a few thousand passages in milliseconds; no server, no extra heavy packages (ChromaDB would add ~30, incl. Kubernetes, gRPC, ONNX Runtime, OpenTelemetry)', 'Free'],
     ['Database', '**SQLite + SQLModel** (Pydantic v2)', 'Zero setup, single file; upgrade path to PostgreSQL in Phase 5', 'Free'],
     ['Configuration', '**pydantic-settings**, YAML, `.env`', 'Typed, validated settings; secrets kept out of code', 'Free'],
     ['PDF & images', '**PyMuPDF**, **Pillow**', 'Fast text extraction and page rendering; photo cleanup before OCR. Note: PyMuPDF is AGPL — fine for personal use; review before selling the app (Phase 5).', 'Free'],
-    ['Chemistry', '**RDKit**, **py3Dmol**, **chempy**, **PubChemPy**', 'Structures, interactive 3D molecules, equation balancing, name → structure lookup (PubChem needs internet)', 'Free'],
+    ['Chemistry', '**RDKit** (structures, 2D/3D) + in-house equation checker + **3Dmol.js** viewer (stored locally) + reviewed local molecule table', 'Built in Phase 2. Replaces the planned py3Dmol (loads 3Dmol.js from the internet), chempy (pulls SciPy/SymPy/Matplotlib just to check equations) and PubChemPy (needs internet in class) — decision D24', 'Free'],
     ['Animation', '**Manim Community Edition** (≥ 0.19)', 'Precise, programmable science/maths animations rendered to MP4', 'Free'],
     ['Video/audio tools', '**FFmpeg** (system install)', 'Merge narration with video, convert formats', 'Free'],
     ['Typesetting', '**MiKTeX**', 'Formulas in Manim (MathTex, chemistry via mhchem)', 'Free'],
     ['Text-to-speech', '**edge-tts** (primary), OpenAI TTS (fallback)', 'Natural English, Hindi and Marathi voices at no cost; paid fallback if the free service changes', 'Free / paid fallback'],
-    ['Simulations', '**p5.js**, **three.js** (stored locally), **PhET** HTML5 sims (embedded)', 'AI-written interactive experiments; ready-made PhET sims for standard experiments (CC-BY, online)', 'Free'],
+    ['Simulations', '**p5.js** 2.3.3 (stored locally, SHA-256 verified); PhET embedding optional later', 'AI-written interactive experiments in a sealed frame without network access; checked before the teacher sees them (D25)', 'Free'],
     ['Background jobs', 'Python thread/process pool + SQLite jobs table', 'Avoids Redis/Celery, which are awkward on Windows', 'Free'],
     ['Quality', '**pytest**, **ruff**, **loguru**', 'Tests, linting/formatting, readable logs', 'Free'],
     ['Version control', '**Git** (installed: 2.51) + optional private GitHub repo', 'History, safe experiments, backup', 'Free'],
   ], [1.4, 2.2, 3.6, 1.0]),
-  H2('5.1 Pinned versions (installed and verified on 3 Oct 2026)'),
-  P('Direct Python dependencies are pinned with `==` in `pyproject.toml`; all 110 packages (including transitive ones) are pinned with SHA-256 hashes in `uv.lock`. Release cooldown: nothing published after **26 Sep 2026** is allowed (`exclude-newer`). Vulnerability audit (`pip-audit`): **no known vulnerabilities**. Packages for later phases (ChromaDB, RDKit, Manim, edge-tts…) are added only when their phase starts, to keep the installed surface small.'),
+  H2('5.1 Pinned versions (installed and verified; updated 4 Oct 2026)'),
+  P('Direct Python dependencies are pinned with `==` in `pyproject.toml`; all 113 packages (including transitive ones) are pinned with SHA-256 hashes in `uv.lock`. Release cooldown: nothing published after **26 Sep 2026** is allowed (`exclude-newer`). Vulnerability audit (`pip-audit`): **no known vulnerabilities**. Packages for later phases (RDKit, Manim, edge-tts…) are added only when their phase starts, to keep the installed surface small. Phase 1 added only 3 new packages in total (pymupdf, python-docx, lxml).'),
   ...table(['Component', 'Version', 'Notes'], [
     ['Python', '3.12.14', 'Installed and managed by uv'],
     ['litellm', '1.102.1', 'SDK only; ≥ 1.83.0 clean line. Pulls in boto3, uvicorn, tokenizers etc. as dependencies — all hash-locked'],
@@ -251,6 +254,10 @@ sections.push(portrait([
     ['sqlmodel / pydantic-settings', '0.0.47 / 2.15.0', 'Database models (timezone-aware UTC timestamps) / typed settings'],
     ['keyring', '25.7.0', 'Backend: Windows Credential Manager (WinVaultKeyring)'],
     ['httpx · pyyaml · loguru', '0.28.1 · 6.0.3 · 0.7.3', 'Health checks · config · logging'],
+    ['pymupdf · python-docx (Phase 1)', '1.28.2 · 1.2.0', 'PDF text/rendering (AGPL — fine for personal use; review before selling) · Word files'],
+    ['rdkit (Phase 2)', '2026.3.6', 'Molecule structures, 2D drawings, 3D coordinates (needs only numpy + pillow)'],
+    ['p5.js · 3Dmol.js (Phase 2, browser)', '2.3.3 · 2.5.5', 'Installed from npm with --ignore-scripts and a lockfile; copied to assets/vendor; SHA-256 checked before every use'],
+    ['pillow · numpy (Phase 1)', '12.3.0 · 2.5.3', 'Image handling for OCR · vector search (were already installed as dependencies; now pinned directly)'],
     ['pytest · ruff · pip-audit (dev)', '9.1.1 · 0.16.9 · 2.10.1', 'Tests · lint/format · vulnerability audit'],
     ['Ollama', '0.34.4', 'Local model runtime'],
     ['FFmpeg', '9.0.2 (Gyan full build)', 'Installed via winget; installer hash verified'],
@@ -266,13 +273,13 @@ sections.push(portrait([
     ['GPU', 'NVIDIA GeForce RTX 3050 Laptop, 4 GB VRAM (+ Intel integrated graphics)'],
     ['Free disk space on D:', '≈ 117 GB (project needs ~15–25 GB incl. models and videos)'],
     ['Installed (Phase 0)', 'Python 3.12.14 (uv) · FFmpeg 9.0.2 · MiKTeX 25.12 · uv 0.12.11 · Git 2.51 · Ollama 0.34.4 · Node.js 24.16 (not required)'],
-    ['Ollama models', 'qwen3:4b-instruct (used) · qwen3-vl:4b · qwen3-vl:2b · qwen3-embedding:0.6b · qwen3:4b (Thinking, not used) · deepseek-r1:1.5b (not used)'],
+    ['Ollama models', 'Used: qwen3:4b-instruct · qwen3-vl:2b-instruct · qwen3-embedding:0.6b. Not used: qwen3:4b, qwen3-vl:4b, qwen3-vl:2b (Thinking variants), qwen3-vl:4b-instruct (too slow on 4 GB), deepseek-r1:1.5b'],
   ], [2, 6]),
   H2('6.2 Setup steps (also in README.md)'),
   P('Steps 1–3 were done in Phase 0. On a new laptop, repeat all of them from the project folder:'),
   ...numbered([
     'Tools: `uv python install 3.12` · `winget install --id Gyan.FFmpeg -e` · `winget install --id MiKTeX.MiKTeX -e --scope user`',
-    'Local models: `ollama pull qwen3:4b-instruct` · `ollama pull qwen3-vl:4b` · `ollama pull qwen3-embedding:0.6b`',
+    'Local models: `ollama pull qwen3:4b-instruct` · `ollama pull qwen3-vl:2b-instruct` · `ollama pull qwen3-embedding:0.6b`',
     'Packages, only from the lockfile (checks every SHA-256 hash): `uv sync --locked`',
     'Settings (no secrets): `copy .env.example .env`',
     'In the OpenAI dashboard, create a Project “ai-teaching-studio” with its own restricted key and a monthly budget limit.',
@@ -297,8 +304,10 @@ sections.push(portrait([
   ...table(['Local model', 'Disk', 'Fits 4 GB GPU?', 'Use in this project'], [
     ['qwen3:4b-instruct (installed)', '≈ 2.5 GB', 'Yes', '**Used.** Qwen3-4B-Instruct-2507: tutor chat, summaries, quiz drafts. Measured: ~22 tokens/s; direct answers'],
     ['qwen3:4b (installed)', '≈ 2.5 GB', 'Yes', '**Not used.** This tag is Qwen3-4B-Thinking-2507: it always reasons first (≈ 190 tokens and 15–25 s for a one-line answer) and ignores the “thinking off” switch'],
-    ['qwen3-vl:4b (installed)', '3.3 GB', 'Yes (tight)', 'OCR of textbook photos, describing diagrams'],
-    ['qwen3-vl:2b (installed)', '1.9 GB', 'Yes', 'Faster OCR for clean, printed pages'],
+    ['qwen3-vl:2b-instruct (installed)', '1.9 GB', 'Mostly (≈ 66 % GPU)', '**Used for OCR.** Measured on a real A4 textbook page at 1600 px: ≈ 16–40 s/page, accurate text'],
+    ['qwen3-vl:4b-instruct (installed)', '3.3 GB', 'No (≈ 25–40 % GPU)', '**Not used.** Same page: 64 s (1280 px) to 178 s (1600 px), no better text'],
+    ['qwen3-vl:4b · qwen3-vl:2b (installed)', '3.3 / 1.9 GB', '—', '**Not used.** Thinking variants: reason before answering even with thinking off (≈ 90 s for 3 lines)'],
+    
     ['qwen3-embedding:0.6b (installed)', '0.6 GB', 'Yes', 'Embeddings for RAG (multilingual)'],
     ['deepseek-r1:1.5b (installed)', '1.1 GB', 'Yes', 'Not used — too small for reliable teaching answers'],
     ['7–8B models (optional, e.g. qwen3:8b)', '≈ 5 GB', 'Partly (CPU offload)', 'Better offline quality when speed is not critical'],
@@ -306,9 +315,13 @@ sections.push(portrait([
   H2('7.3 Default task → model routing (as configured in Phase 0)'),
   P('OpenAI tiers chosen: **cheapest** = `gpt-5-nano` (USD 0.05 in / 0.40 out per 1M tokens) · **mini** = `gpt-5.4-mini` (0.75 / 4.50) · **premium** = `gpt-5.2` (1.75 / 14.00, only with your approval). These names and prices were confirmed in two independent sources on 3 Oct 2026: the OpenAI pricing page and LiteLLM’s bundled price list.'),
   ...table(['Task', 'Primary', 'Fallback', 'Reason'], [
-    ['OCR of photos', 'ollama/qwen3-vl:4b', 'openai/gpt-5-nano (vision)', 'Free for most pages; cloud only for hard pages'],
+    ['OCR of pages / photos', 'ollama/qwen3-vl:2b-instruct (num_ctx 8192)', 'openai/gpt-5-nano (≈ .0003/page)', 'Free; cloud only if the local model fails'],
     ['Embeddings', 'ollama/qwen3-embedding:0.6b', '—', 'Free and multilingual. The same model must be used for the whole index (changing it means re-indexing).'],
-    ['Tutor chat', 'ollama/qwen3:4b-instruct + RAG', 'openai/gpt-5-nano', 'Grounded answers are short and simple'],
+    ['Tutor answers (English)', 'ollama/qwen3:4b-instruct + RAG', 'openai/gpt-5-nano', 'Grounded answers are short and simple'],
+    ['Tutor answers (cloud switch)', 'openai/gpt-5-nano', 'ollama/qwen3:4b-instruct', 'Optional per question; better with tables (≈ $0.001)'],
+    ['OCR cloud re-read', 'openai/gpt-5.4-mini', '— (page unchanged if it fails)', 'Only when you click it; ≈ $0.005/page'],
+    ['Page summaries & descriptions', 'ollama/qwen3:4b-instruct (JSON)', 'openai/gpt-5-nano', 'Free; used only to find pages, never as answer evidence'],
+    ['Tutor answers (Hindi / Marathi)', 'openai/gpt-5.4-mini', 'ollama/qwen3:4b-instruct', 'Only on request; small local models are weak in Marathi'],
     ['Lesson plan & explanations', 'openai/gpt-5.4-mini', 'ollama/qwen3:4b-instruct', 'Quality matters; generated once, then cached'],
     ['Manim & simulation code', 'openai/gpt-5.4-mini', 'openai/gpt-5.2 (asks first)', 'Small local models often produce broken code'],
     ['Quiz generation', 'openai/gpt-5-nano', 'ollama/qwen3:4b-instruct', 'Structured output, low token count'],
@@ -354,11 +367,20 @@ sections.push(portrait([
     '  openai/gpt-5.4-mini: { input_per_million: 0.75, output_per_million: 4.50 }',
     '  openai/gpt-5.2:      { input_per_million: 1.75, output_per_million: 14.00 }',
     'tasks:',
-    '  tutor_chat:',
+    '  ocr:',
+    '    primary: ollama/qwen3-vl:2b-instruct',
+    '    fallbacks: [openai/gpt-5-nano]',
+    '    ollama_options: { num_ctx: 8192 }',
+    '  ocr_retry:                           # only when OCR gets stuck repeating',
+    '    primary: ollama/qwen3-vl:2b-instruct',
+    '    ollama_options: { num_ctx: 8192, repeat_penalty: 1.1 }',
+    '  embed: { kind: embedding, primary: ollama/qwen3-embedding:0.6b }',
+    '  tutor_answer:',
     '    primary: ollama/qwen3:4b-instruct',
     '    fallbacks: [openai/gpt-5-nano]',
-    '    max_tokens: 800',
-    '    reasoning_effort: minimal',
+    '  tutor_answer_indic:                  # Hindi / Marathi on request',
+    '    primary: openai/gpt-5.4-mini',
+    '    fallbacks: [ollama/qwen3:4b-instruct]',
     '  manim_code:',
     '    primary: openai/gpt-5.4-mini',
     '    fallbacks: [openai/gpt-5.2]        # premium: asks before use',
@@ -392,6 +414,69 @@ sections.push(landscape([
   ...figure('05_lesson_generation_pipeline', 900, 520, 'Figure 5 — Lesson generation pipeline'),
   P('The planner produces a structured **Lesson Plan** (JSON) so every generator gets precise instructions. The validator checks results; failures regenerate only the failing part. The Manim generator feeds render errors back to the model up to 3 times before asking you.'),
 ]));
+sections.push(portrait([
+  H2('8.4 Phase 1 as built: ingestion and AI tutor'),
+  ...table(['Area', 'Behaviour'], [
+    ['Inputs', 'PDF, images (PNG, JPG, WEBP, BMP, TIFF incl. multi-page), DOCX (paragraphs + tables), TXT/MD. Dropped into `source/` or uploaded in **Syllabus Library** (saved into `source/`). Office lock files and hidden files are ignored; unsupported types are listed.'],
+    ['Automatic processing', 'Opening Syllabus Library scans `source/`, registers new files and queues extraction; a background worker (one at a time, GPU-friendly) processes the queue. Same work from the command line: `uv run python -m app.ingestion scan`.'],
+    ['De-duplication (3 levels)', '**File:** SHA-256 of the bytes — the same file (even renamed or re-uploaded) is never registered twice; an upload with known content is not even saved. **Page image:** an identical page image is OCR’d once and reused. **Passage:** identical text (whitespace/case-insensitive) is embedded and stored once across all documents.'],
+    ['Page extraction', 'PDF page with ≥ 25 words in its text layer → read directly (exact, instant). Otherwise rendered at 1600 px and OCR’d by `qwen3-vl:2b-instruct` with a textbook-specific prompt (formulas, tables as Markdown, “[Figure: …]” lines). DOCX/TXT → parts of ~3,000 characters.'],
+    ['Resumable jobs', 'Jobs are stored in the database with progress and heartbeat. Closing the app mid-way is safe: a job without heartbeat for 3 minutes is re-queued and continues; finished pages are never redone.'],
+    ['Review (mandatory by default)', 'Review Text shows the page image next to the editable text; pages become searchable only after you approve them (`ATS_REQUIRE_REVIEW=false` skips this). Editing an already-indexed page re-indexes only that page.'],
+    ['Indexing', 'Paragraph-aware passages of ~1,500 characters with 200-character overlap; each embedded with a heading (subject · class · chapter · title) by `qwen3-embedding:0.6b` and stored as a normalised float32 vector in SQLite.'],
+    ['Search & answers', 'The question is embedded with a retrieval instruction; top 5 passages by cosine similarity (filters: class, subject, chapter). Passages below the relevance threshold are discarded; if none remain the tutor replies “This is not covered in the uploaded textbook pages.” without calling a chat model. Otherwise `qwen3:4b-instruct` answers only from the numbered extracts and cites them [1], [2]; the UI shows each source passage with chapter and page.'],
+    ['Languages', 'English by default; Hindi or Marathi only when selected for a question (task `tutor_answer_indic`, scientific terms kept in English in brackets).'],
+  ], [1.8, 6.2]),
+  H3('Measured on the owner’s chapter (Class 9 Science, Chapter 5, 17 scanned pages)'),
+  ...table(['Measure', 'Result'], [
+    ['Extraction', '17 scanned pages (no text layer) — all OCR’d locally by qwen3-vl:2b-instruct: median 27 s/page, ≈ 9 min in total, cost $0. Page 16 got stuck repeating one line 196 times; this is now detected automatically and retried with repeat_penalty 1.1, which recovered the full page. One call aborted by Ollama (“token repeat limit”) was retried automatically.'],
+    ['Indexing', '37 passages from 17 pages embedded in 14 s (local, $0). Re-indexing unchanged pages does nothing (0 s).'],
+    ['Re-scan of the same folder', 'File recognised as already registered (0 new) — no re-processing'],
+    ['Relevance threshold', 'Questions answered in the chapter scored 0.70–0.84 with the correct page ranked first; unrelated questions scored 0.22–0.34 → threshold set to 0.50 (middle of the gap).'],
+    ['Test questions', '11/11 chapter questions answered from the right pages with [n] citations (5–33 s, local, $0). 6/6 unrelated questions → “not covered” in ≈ 1 s without calling a chat model. Marathi answer via gpt-5.4-mini correct, cost $0.002. Improved after testing: stricter prompt (no invented analogies) and removal of a stray “not covered” sentence.'],
+  ], [2, 6]),
+]));
+sections.push(portrait([
+  H2('8.5 Phase 1 improvements: tables, diagrams, summaries, reused answers (as built, measured)'),
+  P('Requested by the owner after reviewing the chapter: tables looked broken in the review box, one page had a placeholder “[Figure: … no figure is present]” line, and diagrams/tables should be better represented for search. Each item was benchmarked on the owner’s own pages before it was enabled.'),
+  H3('OCR benchmark on the owner’s pages 3, 4, 5 and 16 (1600 px)'),
+  ...table(['Reader', 'Table page (61)', 'Figures & text', 'Speed', 'Cost'], [
+    ['Local qwen3-vl:2b-instruct', 'Text correct; table header 6 cells vs 7 data cells (last column lost when displayed) → now auto-repaired', 'Invented figure details on one page (“10 ml lemon juice in 10 ml water”)', '30–110 s/page', '$0'],
+    ['gpt-5-nano', 'Subscripts lost (H2SO4, Ca(OH)2); table flattened into plain lines', 'Dumped scale markings as text; small typos', '6–7 s/page', '≈ $0.0004/page'],
+    ['**gpt-5.4-mini** (chosen)', 'All subscripts; correct 7-column table with blank exercise rows', 'Accurate, honest figure lines', '3–4 s/page', '≈ $0.005/page (≈ 8–9 ¢ per chapter)'],
+  ], [1.7, 2.3, 2, 1, 1]),
+  H3('What was built'),
+  ...table(['Item', 'Behaviour', 'Evidence'], [
+    ['Review preview', 'Review Text has ✏️ Edit and 👁️ Preview tabs; Preview shows tables as real tables (repaired for display only).', 'All pages render with the real library (UI tests).'],
+    ['OCR clean-up', 'New OCR prompt (figure lines only for real figures; proper table rows; blank cells kept). Placeholder figure lines removed; Markdown tables repaired losslessly (rows padded to equal width, separator added). Applied to new OCR results and, on request, to pages you have not edited (`clean`). Reviewed text is never changed silently; search passages use the repaired tables.', 'Real page-61 table: all 7 columns and blank rows kept; gpt-5.4-mini output unchanged by the repair.'],
+    ['Cloud re-read (optional, paid)', 'Per page (Review Text) or for pages with tables / all OCR pages (Syllabus Library), with the cost shown before clicking. Uses task `ocr_cloud` (gpt-5.4-mini, no fallback). Re-read pages must be reviewed again.', 'Benchmark above; budget guard and cost log apply.'],
+    ['Page summaries & table/figure descriptions', 'When a page is indexed, the local model writes a 2–3 sentence summary and one description per table and figure (JSON output). They are stored as extra search entries linked to the page. Free; failures never block indexing.', '17 summaries, 15 table and 19 figure descriptions for the chapter; chapter questions still ranked the right page first; unrelated questions stayed below the threshold (max 0.38).'],
+    ['Safety: originals only', 'A generated description once **swapped “acidity” and “basicity”**, and the tutor repeated the error. Now descriptions are used only to FIND a page; the tutor receives the best ORIGINAL passages of that page instead (“found via table description” is shown in the sources).', 'The wrong answer disappeared; automated test proves descriptions never reach the tutor.'],
+    ['Answer model switch', 'AI Tutor: Local (free) or Cloud gpt-5-nano (≈ $0.001 per answer, task `tutor_answer_cloud`).', '“Which bases are listed in the acidity table?”: local 4B said “not covered”; gpt-5-nano and gpt-5.4-mini listed all 7 bases correctly from the same evidence.'],
+    ['Similar-question answers (semantic cache)', 'A question that means the same as an earlier one gets the stored answer instantly (♻️, $0). Only with the same filters and language, only while the index is unchanged, and never when the questions differ by contrast words (cathode/anode, strong/weak, acid/base, dilute/concentrated…). Threshold 0.97.', 'Calibration: same-meaning pairs 0.88–0.99; different-but-similar pairs up to 0.94 (“cathode” vs “anode”) → 0.97 merges 4/6 paraphrases and 0/7 different pairs; repeated question answered in 0.4 s.'],
+    ['Bug found & fixed', 'SQLite reuses row ids after deletes, so “count + max id” did not detect a re-indexed page: the search engine’s in-memory vectors (and cached answers) could stay stale. Replaced by a change counter (`IndexState.generation`).', 'Regression test added.'],
+    ['Database migration', 'Small additive migration adds the new `chunk.kind` column to existing databases automatically.', 'Tested on an old-format database.'],
+  ], [1.6, 3.6, 2.8]),
+  P('**Applied to the owner’s library (04-Oct-2026):** after the owner reviewed all 17 pages, the chapter was re-indexed with the new features in 350 s (local, $0): 37 text passages + 17 page summaries + 15 table and 19 figure descriptions = 88 search entries. Reviewed text was not changed (the clean-up skips reviewed pages; table repair is applied only to search passages and the preview).'),
+]));
+sections.push(portrait([
+  H2('8.6 Phase 2 as built: lessons, chemistry, simulations, Teach Mode'),
+  ...table(['Part', 'How it works'], [
+    ['Lesson planner', 'Topic → the 8 most relevant ORIGINAL reviewed passages of the chosen chapter (never generated summaries) → gpt-5.4-mini writes a JSON lesson: title, objectives, 3–5 sections with [n] citations, key points, equations, molecules, a simulation brief, vocabulary. Citations are mapped to textbook pages; a section without citations is flagged.'],
+    ['Equation checker', 'In-house parser (brackets, hydrates, ions, electrons, state symbols, Unicode sub/superscripts) checks atoms AND charge. An unbalanced equation is sent back to the model once with the exact finding; if still wrong it is shown with ⚠️ and the reason. Teacher edits are re-checked on save.'],
+    ['Molecules', 'Reviewed local table (formula/name → structure) → RDKit 2D drawing and 3D coordinates → 3Dmol.js viewer (rotate/zoom), all offline. Hydrates show the salt with a note that the water molecules are not drawn. Unknown substances are reported, never guessed.'],
+    ['Simulations', 'The model writes only a p5.js sketch. Checks before the teacher sees it: forbidden capabilities (network, storage, eval, access to the surrounding app, loading files), structure (setup/draw/createCanvas, length) and `node --check` syntax. Problems are sent back for up to 2 automatic fixes. The page is shown in a separate frame with a Content-Security-Policy that blocks all network access; the libraries are local and SHA-256 verified.'],
+    ['Lesson Studio', 'Create (any topic, or the 3 pilot buttons) → background job writes the plan, then the simulation → tabs Content / Equations & molecules / Simulation / Textbook sources → edit & save (versioned) → regenerate the simulation with a change request → approve.'],
+    ['Teach Mode', 'Approved lessons as slides: title & objectives → sections (with page numbers) → equations → 3D molecules → simulation → key points & vocabulary; large fonts for the projector; Previous/Next.'],
+  ], [1.6, 6.4]),
+  H3('Pilot lessons generated from the owner’s Chapter 5 (05-Oct-2026)'),
+  ...table(['Lesson', 'Content check', 'Simulation check', 'Cost / time'], [
+    ['Neutralization Reaction', '4 sections (pages 8, 9, 11); 4 equations incl. ionic and net-ionic forms — all balanced', 'pH rises towards 7 as NaOH is added; pH paper turns green at 7 (matches page 8; simplified model that stops at 7)', '$0.020 · 27 s'],
+    ['Electrolysis of Water', '4 sections (pages 14–16); cathode and anode half-reactions — balanced in atoms and charge', 'Gas volumes H₂ : O₂ = 2 : 1 (matches page 16); no bubbles without enough ions', '$0.019 · 20 s'],
+    ['Water of Crystallisation', '4 sections (page 12 activity with blue vitriol and alum); CuSO₄·5H₂O → CuSO₄ + 5H₂O — balanced', 'Blue crystals turn white on heating and regain colour with water (matches page 12)', '$0.022 · 21 s'],
+  ], [1.6, 2.6, 2.6, 1.2]),
+  P('All 3 simulations passed every check on the first attempt (0 automatic fix rounds). Molecules used by the lessons that were missing from the local table (ferrous sulphate, washing soda, alum) were added after review.'),
+]));
 
 // 9-12
 sections.push(portrait([
@@ -406,36 +491,45 @@ sections.push(portrait([
   ]),
 
   H1('10. Data Model'),
+  P('Tables marked † exist since Phase 1; the others are added in later phases.'),
   ...table(['Entity', 'Key fields', 'Purpose'], [
-    ['Subject / Chapter / Topic', 'class_level, subject, chapter no. & title, topic title', 'The syllabus tree you teach from'],
-    ['SourceDocument', 'file path, type (PDF/photo), page count, OCR status', 'Every uploaded file'],
-    ['PageText', 'document, page no., text, reviewed (yes/no)', 'Extracted text after your review'],
-    ['Chunk (ChromaDB)', 'text, vector, chapter, topic, page', 'Searchable pieces for RAG'],
-    ['Lesson', 'topic, version, status (draft/approved), language', 'One lesson per topic, versioned'],
+    ['Document †', 'SHA-256 (unique), filename, path, kind, pages, class, subject, chapter no. & title, status', 'Every unique source file; the syllabus tree comes from its class/subject/chapter'],
+    ['Page †', 'document, page no., method (text_layer / ocr / ocr_reused / docx / text), image SHA-256, raw text, reviewed text, reviewed, indexed', 'Extracted text, your corrections and approval'],
+    ['Chunk †', 'document, page, text, text SHA-256, embed model, vector (float32, normalised)', 'Searchable passages; identical passages stored once'],
+    ['Lesson †', 'topic, source document, title, status (generating/draft/approved/failed), plan JSON (sections with pages, equations with check result, molecules, simulation brief, sources), simulation code + check results, version, cost', 'One lesson per topic, editable and versioned'],
     ['LessonAsset', 'lesson, type (slide/simulation/molecule/video/audio/image/quiz), file path, model, cost', 'Everything a lesson contains'],
-    ['Job', 'type, status, progress, error, timestamps', 'Background renders and bulk OCR'],
-    ['LLMCall', 'task, provider, model, input/output tokens, cost (USD), cached, latency, time', 'Cost dashboard and budget guard'],
-    ['CacheEntry', 'key (task + model + prompt hash), response, created', 'Never pay twice for the same request'],
+    ['Job †', 'kind (extract / index), document, status, progress, message, heartbeat, error', 'Resumable background work'],
+    ['LLMCall †', 'task, model, input/output tokens, cost (USD), cached, success, latency, time', 'Cost dashboard and budget guard'],
+    ['CacheEntry †', 'key (task + model + prompt hash), response, created', 'Never pay twice for the same request'],
+    ['AnswerCache †', 'question, question vector, scope (filters + language), index version, answer, sources', 'Reuse answers to questions that mean the same'],
+    ['IndexState †', 'generation (change counter)', 'Detect any change to the search index'],
   ], [2, 3.6, 2.4]),
 
   H1('11. Project Folder Structure'),
-  P('Built in Phase 0 (folders marked “later” are added in their phase):', { p: { keepNext: true } }),
+  P('As built after Phase 1 (folders marked “later” are added in their phase):', { p: { keepNext: true } }),
   ...code([
     'Tuition study app/',
     '├── app/',
     '│   ├── core/       config.py · secrets.py · logging.py · startup_checks.py',
-    '│   ├── db/         models.py (LLMCall, CacheEntry) · session.py',
+    '│   ├── db/         models.py · session.py (WAL mode) · migrations.py',
     '│   ├── llm/        router.py · config.py · backend.py · litellm_backend.py',
     '│   │               service.py · health.py',
+    '│   ├── ingestion/  files.py · extract.py · ocr.py · chunking.py',
+    '│   │               enrich.py · service.py · __main__.py (CLI)',
+    '│   ├── rag/        store.py (SQLite + NumPy) · tutor.py',
+    '│   │               answer_cache.py',
+    '│   ├── jobs/       runner.py (background worker)',
     '│   ├── tools/      verify_models.py',
-    '│   ├── ingestion/  rag/                    (later: Phase 1)',
-    '│   └── lessons/    generators/  jobs/      (later: Phases 2–3)',
-    '├── ui/             Home.py · common.py · pages/1_…5_*.py',
+    '│   └── lessons/    planner.py · chemistry.py · molecules.py',
+    '│                   simulation.py · viewers.py · service.py',
+    '├── assets/vendor/  p5.min.js · 3Dmol-min.js · manifest.json (SHA-256)',
+    '├── ui/             Home.py · common.py · pages/1_…6_*.py',
     '├── config/         models.yaml',
-    '├── tests/          48 automated tests (offline, no cost)',
+    '├── tests/          automated tests (offline, no cost)',
     '├── scripts/        audit.ps1 (vulnerability audit)',
-    '├── docs/           blueprint .docx · diagrams/ · _source/ (doc generators)',
+    '├── docs/           blueprint .docx · diagrams/ · _source/ · archive/',
     '├── .streamlit/     config.toml (localhost only, no usage stats)',
+    '├── source/         NOT in Git: your textbook files',
     '├── data/           NOT in Git: app.db, logs/ (created at runtime)',
     '├── .env.example    non-secret settings only',
     '├── pyproject.toml  uv.lock  .python-version  .gitignore',
@@ -463,9 +557,9 @@ sections.push(portrait([
 
   H2('12.2 Progress tracker'),
   ...table(['Phase', 'Status', 'Evidence / remaining'], [
-    ['0 — Setup', '**Complete** (03-Oct-2026), 1 item waiting on owner', 'Done: tools installed; `uv sync --locked` OK (110 packages, SHA-256 verified); `pip-audit` clean; 6/6 security checks OK; 48/48 automated tests pass (router, budget, cache, fallback, premium approval, allow-list refusal, key redaction, no network on LiteLLM import, all pages render); local test prompt answered end-to-end and logged at $0, repeat served from cache; app listens on 127.0.0.1 only. **Remaining:** owner stores OpenAI key → `verify_models` + one test prompt with gpt-5-nano.'],
-    ['1 — Syllabus & AI Tutor', 'Next', 'Needs: first class / subject / chapter photos or PDFs from the owner'],
-    ['2 — Lessons & Simulations', 'Planned', 'Needs: 3 pilot topics'],
+    ['0 — Setup', '**Complete** (03-Oct-2026; OpenAI key verified 04-Oct-2026)', 'Done: tools installed; `uv sync --locked` OK (110 packages, SHA-256 verified); `pip-audit` clean; 6/6 security checks OK; 48/48 automated tests pass (router, budget, cache, fallback, premium approval, allow-list refusal, key redaction, no network on LiteLLM import, all pages render); local test prompt answered end-to-end and logged at $0, repeat served from cache; app listens on 127.0.0.1 only. OpenAI key stored in Credential Manager by the owner; `verify_models`: all configured models available, prices match; a paid call (gpt-5.4-mini) logged at $0.002.'],
+    ['1 — Syllabus & AI Tutor', '**Complete** (04-Oct-2026) incl. improvements (§8.5)', 'Done: any PDF / image / DOCX / TXT from `source/` or upload; 3-level de-duplication; resumable background jobs; review screen with table preview; SQLite + NumPy search with page summaries and table/figure descriptions; optional cloud re-read; tutor with citations, filters, Hindi/Marathi on request, local/cloud answer switch and safe answer reuse. The owner reviewed all 17 pages and made them searchable. Retrieval 11/11, out-of-scope 6/6. 109 automated tests pass; `pip-audit` clean.'],
+    ['2 — Lessons & Simulations', '**Built** (04/05-Oct-2026); owner review of the 3 pilot lessons pending', 'Done: lesson planner from reviewed passages with page citations; in-house equation checker (atoms + charge) with one automatic correction round; molecules in 2D/3D (RDKit + offline 3Dmol.js); AI-written p5.js simulations with safety/structure/syntax checks and up to 2 automatic fixes, shown in a sealed frame; Lesson Studio (edit, regenerate, approve) and Teach Mode (slides). Pilot lessons generated from Chapter 5: Neutralization, Electrolysis of Water, Water of Crystallisation — all equations balanced, all simulations passed on the first try, ≈ $0.06 in total. 160 automated tests pass; `pip-audit` clean. **Remaining (owner):** review, adjust and approve the 3 lessons; present one in class.'],
     ['3 — Videos & Narration', 'Planned', '—'],
     ['4 — Quiz & Polish', 'Planned', '—'],
     ['5 — Students & Cloud', 'Later', 'Decided after Phase 4'],
@@ -544,7 +638,7 @@ sections.push(portrait([
     ['D3', 'English by default; Hindi and Marathi only when explicitly requested', 'Decided by owner', '03-Oct-2026'],
     ['D4', 'Multi-provider AI via configuration: OpenAI (existing keys) + Ollama local + optional Hugging Face / free tiers; minimise cost', 'Decided by owner', '03-Oct-2026'],
     ['D5', 'Run locally on the laptop first; decide cloud after Phase 4', 'Decided by owner', '03-Oct-2026'],
-    ['D6', 'Stack: Python 3.12 via uv, Streamlit, LiteLLM, SQLite + ChromaDB, Manim, RDKit/py3Dmol/chempy, edge-tts', 'Approved by owner', '03-Oct-2026'],
+    ['D6', 'Stack: Python 3.12 via uv, Streamlit, LiteLLM, SQLite (+ vector store), Manim, RDKit/py3Dmol/chempy, edge-tts', 'Approved by owner', '03-Oct-2026'],
     ['D7', 'Accuracy-first: science visuals drawn by code; image/video-generating AI only for decoration', 'Approved by owner', '03-Oct-2026'],
     ['D8', 'Default monthly cap on paid API spend: USD 5 (adjustable any time)', 'Approved by owner', '03-Oct-2026'],
     ['D9', 'Phase plan 0–5 as in Section 12', 'Approved by owner', '03-Oct-2026'],
@@ -553,14 +647,28 @@ sections.push(portrait([
     ['D12', 'Local text model is `qwen3:4b-instruct` (Qwen3-4B-Instruct-2507), not `qwen3:4b` (Thinking-2507, always reasons first — measured 15–25 s and ~190 tokens for a one-line answer)', 'Decided in Phase 0 (evidence-based)', '03-Oct-2026'],
     ['D13', 'OpenAI tiers: gpt-5-nano (cheapest), gpt-5.4-mini (mini), gpt-5.2 (premium, approval required); prices confirmed in two sources', 'Decided in Phase 0', '03-Oct-2026'],
     ['D14', 'Python packages for later phases are added only when that phase starts (smaller attack surface); each addition follows §14.3', 'Decided in Phase 0', '03-Oct-2026'],
+    ['D15', 'Vector store = SQLite + NumPy instead of ChromaDB (same results at this scale; avoids ~30 heavy packages incl. Kubernetes, gRPC, ONNX Runtime, OpenTelemetry and telemetry). Behind a small interface, so ChromaDB can be added later if the library grows very large', 'Proposed — awaiting owner approval', '04-Oct-2026'],
+    ['D16', 'OCR model = `qwen3-vl:2b-instruct` at 1600 px with an 8,192-token context (measured ≈ 20–30 s/page vs 64–178 s for 4b-instruct; Thinking variants not usable)', 'Decided in Phase 1 (evidence-based)', '04-Oct-2026'],
+    ['D17', 'Ingestion: any PDF / image / DOCX / TXT from `source/` or upload; 3-level de-duplication (file, page image, passage); review before search by default', 'Requested by owner, built', '04-Oct-2026'],
+    ['D18', '`source/` (textbook files) excluded from Git — copyright and size; files stay on the laptop', 'Proposed — owner may revert in .gitignore', '04-Oct-2026'],
+    ['D19', 'No Unstructured / LangChain / Redis: scanned pages need a vision model anyway (Tesseract handles subscripts poorly), they add large dependency trees, and Redis needs WSL/Docker on Windows. Equivalent features built on the existing stack (§8.5)', 'Discussed with owner; owner asked to implement', '04-Oct-2026'],
+    ['D20', 'Cloud re-read model = gpt-5.4-mini (benchmark: only option with correct subscripts and tables); optional, per page or per document, cost shown first', 'Decided (evidence-based)', '04-Oct-2026'],
+    ['D21', 'Generated summaries/descriptions are search aids only — never answer evidence (a description swapped acidity/basicity)', 'Decided (evidence-based)', '04-Oct-2026'],
+    ['D22', 'Semantic answer cache: threshold 0.97 + contrast-word guard + scope/index-version checks; on by default, toggle per question', 'Decided (calibrated)', '04-Oct-2026'],
+    ['D23', 'AI Tutor answer-model switch: local (free, default) or cloud gpt-5-nano (≈ $0.001/answer, better with tables)', 'Decided (evidence-based)', '04-Oct-2026'],
+    ['D24', 'Chemistry without chempy / py3Dmol / PubChemPy: in-house equation checker (fully tested), RDKit + locally stored 3Dmol.js, reviewed local molecule table (works offline in class)', 'Decided in Phase 2', '04-Oct-2026'],
+    ['D25', 'Simulation safety: model writes only the p5.js sketch; rules (no network/storage/eval/parent access), structure checks and `node --check` syntax check, ≤ 2 automatic fix rounds; page served with a no-network Content-Security-Policy in a separate frame; teacher previews before approving', 'Decided in Phase 2', '04-Oct-2026'],
+    ['D26', 'Pilot topics: Neutralization reaction, Electrolysis of water, Water of crystallisation (Chapter 5)', 'Chosen by owner (“use the suggested 3”)', '04-Oct-2026'],
+    ['D27', 'Background workers only claim job kinds they support (an app started before an update failed two new jobs)', 'Decided (incident)', '04-Oct-2026'],
   ], [0.5, 4.8, 1.6, 1.3]),
 
   H1('17. Open Items for the Owner'),
   ...numbered([
-    'Create an OpenAI Project with a restricted key and a monthly limit; store the key with `uv run python -m app.core.secrets set openai`; then run `uv run python -m app.tools.verify_models` and send one test question with “OpenAI gpt-5-nano” on the AI Tutor page (closes Phase 0).',
-    'Choose the first class, subject and chapter for Phase 1 and keep its photos/PDFs ready.',
-    'Choose 3 pilot topics for Phase 2 (suggestion: one chemical reaction, one physical process, one concept-heavy topic).',
-    'Optional: free ~3.6 GB by removing unused models: `ollama rm qwen3:4b` and `ollama rm deepseek-r1:1.5b`.',
+    '**Restart the app** (it was started before Phase 2 and still runs the old code).',
+    'Review the 3 pilot lessons in **Lesson Studio** (content, equations, molecules, simulation), adjust and **approve** them; present one in **Teach Mode**.',
+    'Ask ~10 real questions on **AI Tutor** (try a table question with the *Cloud* answer model) and report any wrong answers.',
+    'Approve or change D15 (vector store) and D18 (`source/` kept out of Git).',
+    'Optional: free ~10 GB by removing unused models: `ollama rm qwen3:4b qwen3-vl:4b qwen3-vl:2b qwen3-vl:4b-instruct deepseek-r1:1.5b`.',
   ]),
 
   H1('Appendix A — Glossary'),
@@ -569,7 +677,7 @@ sections.push(portrait([
     ['RAG', 'Retrieval-Augmented Generation — the AI first looks up relevant textbook passages, then answers using them'],
     ['OCR', 'Optical Character Recognition — reading text from photos of pages'],
     ['Embedding', 'A list of numbers that represents the meaning of a text, used to find similar passages'],
-    ['Vector store', 'A database of embeddings (here: ChromaDB) for fast meaning-based search'],
+    ['Vector store', 'Storage + search of embeddings (here: SQLite + NumPy) for meaning-based search'],
     ['Token', 'A piece of a word; cloud AI providers charge per token'],
     ['Fallback chain', 'The ordered list of models to try if the first one fails or is unavailable'],
     ['Ollama', 'Software that runs open AI models locally on the laptop'],
@@ -586,7 +694,7 @@ sections.push(portrait([
 // ---------- document ----------
 const doc = new Document({
   creator: 'Claude Code for Santosh',
-  title: 'AI Teaching Studio — Project Blueprint v1.2',
+  title: 'AI Teaching Studio — Project Blueprint v1.5',
   description: 'Requirements, architecture, workflows and execution plan',
   features: { updateFields: true },
   styles: {

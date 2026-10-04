@@ -1,0 +1,202 @@
+{
+  "entries": [
+    {
+      "date": "2026-10-03",
+      "title": "Architecture proposal and Project Blueprint v1.0",
+      "request": "Design the architecture first (AI videos, images, simulations, chemical reactions, teaching assistant) in Python; after approval, put the plan with workflow and IAD flowchart into Word documents in a docs folder.",
+      "what_i_did": [
+        "Proposed the architecture: Streamlit UI, FastAPI later, LLM orchestrator with tools, Manim/RDKit/JS simulations, RAG on the syllabus, phased plan.",
+        "After the owner's answers (State Board content via uploads, teacher on laptop, English default with Hindi/Marathi on request, multi-provider and low cost, local first), wrote Blueprint v1.0 with 6 diagrams (architecture, teaching workflow, ingestion/RAG, model routing, lesson pipeline, roadmap).",
+        "Checked the laptop first (no Python, no FFmpeg, RTX 3050 4 GB, 32 GB RAM, Ollama already installed with some models) so the plan matched the real hardware."
+      ],
+      "files": [
+        {"path": "docs/AI_Teaching_Studio_Project_Blueprint_v1.0.docx", "change": "Created (now in docs/archive/)"},
+        {"path": "docs/diagrams/*.png, *.svg", "change": "Created 6 diagrams"}
+      ],
+      "issues": [
+        {"problem": "All arrowheads in the diagrams pointed sideways.", "cause": "The SVG renderer (resvg) does not support orient=\"auto-start-reverse\" on markers.", "fix": "Used orient=\"auto\" with a separately drawn reversed marker for double arrows.", "type": "Tool/library limitation"},
+        {"problem": "A label overlapped a box in the teaching-workflow diagram.", "cause": "Loop arrow placed too close to the box.", "fix": "Moved the loop line further right and widened the canvas.", "type": "Claude mistake (layout)"}
+      ],
+      "code": [],
+      "commands": ["node diagrams.js (SVG → PNG with @resvg/resvg-js)", "Word COM export to PDF to visually check every page"],
+      "lessons": ["Always render and look at generated documents/diagrams instead of assuming they are right."]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "LiteLLM supply-chain safety rules → Blueprint v1.1",
+      "request": "After the March 2026 LiteLLM incident: pin versions, use lockfiles with hashes, isolate API keys, filter network egress.",
+      "what_i_did": [
+        "Verified the incident (LiteLLM 1.82.7 and 1.82.8 on PyPI were malicious; 1.83.0+ clean).",
+        "Added Section 14 to the blueprint: SDK only (no proxy server), exact pins, SHA-256 lockfile, 7-day release cooldown, keys in Windows Credential Manager, in-app host allow-list.",
+        "Explained honestly where the guidelines needed adapting for a single laptop (Credential Manager instead of a cloud vault; firewall rules only once deployed)."
+      ],
+      "files": [{"path": "docs/AI_Teaching_Studio_Project_Blueprint_v1.1.docx", "change": "Created (now in docs/archive/)"}],
+      "issues": [],
+      "code": [],
+      "commands": [],
+      "lessons": ["A security rule must be translated to the actual setup (laptop vs server) — and the adaptation written down for approval."]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Phase 0 — secure foundation, AI gateway, cost control",
+      "request": "Start building; be accurate; write a short README with all steps; keep docs updated.",
+      "what_i_did": [
+        "Installed FFmpeg 9.0.2 and MiKTeX 25.12 (winget verified installer hashes); Python 3.12.14 via uv.",
+        "Created the project with exact version pins and a hash-locked uv.lock; pip-audit clean.",
+        "Built the task-based LLM router: fallbacks, retry, monthly budget cap, premium approval, host allow-list, response cache, cost log.",
+        "Startup security checks (pinned clean LiteLLM, malicious .pth file, keys not in .env, localhost binding, keyring backend).",
+        "Streamlit shell (bound to 127.0.0.1, usage statistics off), 48 offline tests, README, Blueprint v1.2."
+      ],
+      "files": [
+        {"path": "pyproject.toml, uv.lock", "change": "Exact pins; exclude-newer cooldown"},
+        {"path": "app/core/*.py", "change": "settings, secrets (keyring), logging with key redaction, startup checks"},
+        {"path": "app/llm/*.py", "change": "router, LiteLLM backend (only LiteLLM import), config, health"},
+        {"path": "ui/*.py", "change": "Home + pages"},
+        {"path": "tests/*.py", "change": "48 tests"}
+      ],
+      "issues": [
+        {"problem": "Ollama model 'qwen3:4b' spent 190 tokens 'thinking' before a one-line answer (15–25 s) and ignored think=false.", "cause": "That tag is Qwen3-4B-Thinking-2507, a thinking-only model.", "fix": "Switched to 'qwen3:4b-instruct' (answers directly, ~22 tokens/s).", "type": "Model behaviour (found by testing)"},
+        {"problem": "LiteLLM downloads its price list and a headers file from GitHub every time it is imported.", "cause": "Library default.", "fix": "Set LITELLM_LOCAL_MODEL_COST_MAP=True and LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS=True before import; a test blocks all sockets and proves zero connections.", "type": "Library behaviour (found by reading its source)"},
+        {"problem": "A pricing-page summary listed a model 'gpt-6-luna' that does not exist.", "cause": "The web page was summarised by a small model that made an error.", "fix": "Used only models confirmed by two sources (pricing page + LiteLLM price list) and added verify_models to check availability with the real key.", "type": "Tool error (caught by cross-checking)"},
+        {"problem": "Tests failed: 'Datetime values must have timezone information'.", "cause": "SQLModel 0.0.47 requires timezone-aware datetimes; I used naive UTC.", "fix": "Switched all timestamps to timezone-aware UTC.", "type": "Claude mistake (assumption about library)"},
+        {"problem": "Pages crashed with 'No module named common' when opened on their own.", "cause": "They only worked because the Home page had added the ui/ folder to Python's path.", "fix": "Each page adds its own folder to the path; the UI test now removes it before each page.", "type": "Claude mistake (hidden dependency)"},
+        {"problem": "I tried to commit to Git; the owner rejected it.", "cause": "I had not asked first.", "fix": "Standing rule: never commit; the owner commits.", "type": "Claude mistake (process)"}
+      ],
+      "code": [
+        {"file": "app/llm/litellm_backend.py", "why": "Stop LiteLLM from contacting GitHub at start-up (only the model endpoints we choose may be contacted).", "snippet": "os.environ[\"LITELLM_LOCAL_MODEL_COST_MAP\"] = \"True\"\nos.environ[\"LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS\"] = \"True\"\n\nimport litellm  # noqa: E402  (must come AFTER the two lines above)"}
+      ],
+      "commands": ["uv python install 3.12", "winget install --id Gyan.FFmpeg -e", "winget install --id MiKTeX.MiKTeX -e --scope user", "uv sync --locked", "uv run pytest", "scripts\\audit.ps1"],
+      "lessons": ["Measure models on the real machine — tags with the same name can be very different models.", "Read a library's source when it matters for security."]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Pushing to GitHub (guidance only)",
+      "request": "Explain the steps to push the codebase to github.com/31skpandit/AI_Tutor_Simulation_App; the owner pushes manually.",
+      "what_i_did": [
+        "Checked read-only that all_key.key and .env are git-ignored and not staged.",
+        "Gave step-by-step commands; recommended a private repo, GitHub push protection, and moving keys out of all_key.key into Credential Manager."
+      ],
+      "files": [],
+      "issues": [],
+      "code": [],
+      "commands": ["git check-ignore -v all_key.key .env data .venv"],
+      "lessons": []
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Phase 1 — textbook ingestion, review, search, AI tutor",
+      "request": "Upload PDFs (or images/docs) from Streamlit or the source folder, process automatically, never re-ingest duplicates; add all testing/teaching steps to the README.",
+      "what_i_did": [
+        "Built ingestion for PDF / images / DOCX / TXT with 3-level de-duplication (file SHA-256, page-image SHA-256, passage text hash).",
+        "Resumable background jobs, Review Text page, SQLite + NumPy vector search (instead of ChromaDB: avoids ~30 heavy packages), tutor with page citations and Hindi/Marathi on request.",
+        "Ran the owner's 17-page scanned chapter end-to-end; calibrated the 'not in textbook' threshold on real questions."
+      ],
+      "files": [
+        {"path": "app/ingestion/*.py", "change": "files, extract, ocr, chunking, service, CLI"},
+        {"path": "app/rag/store.py, tutor.py", "change": "vector store and grounded tutor"},
+        {"path": "app/jobs/runner.py", "change": "background worker"},
+        {"path": "ui/pages/3_*, 4_Review_Text.py, 5_AI_Tutor.py", "change": "new/rewritten pages"}
+      ],
+      "issues": [
+        {"problem": "The PDF had no text layer at all (0 words on every page).", "cause": "It was 'printed to PDF' as images.", "fix": "Every page goes through OCR with a vision model.", "type": "Data"},
+        {"problem": "OCR took 90–178 s per page.", "cause": "'qwen3-vl:4b' is again a Thinking model; the 4b-instruct model does not fit in 4 GB VRAM; Ollama's default context (4,096) was too small.", "fix": "Benchmarked on the real page → 'qwen3-vl:2b-instruct' at 1600 px with num_ctx 8192: ~27 s/page, same text.", "type": "Model/hardware (found by benchmark)"},
+        {"problem": "Page 16: OCR wrote one line 196 times and lost the rest of the page.", "cause": "Small vision models can get stuck in a repetition loop.", "fix": "Detect loops (compression ratio / repeated lines) and retry once with repeat_penalty 1.1; otherwise remove repeats and flag the page ⚠️.", "type": "Model behaviour (found by inspecting output)"},
+        {"problem": "File names with underscores (std10_maths_chapter-3) were not recognised.", "cause": "In regular expressions '_' counts as part of a word, so word boundaries failed.", "fix": "Normalise _ - . to spaces before matching.", "type": "Claude bug (caught by a test)"},
+        {"problem": "The Devanagari examples in tutor.py became garbage characters.", "cause": "I edited the file with PowerShell 5.1 Get-Content/Set-Content, which reads ANSI and writes a BOM.", "fix": "Rewrote the file in UTF-8, scanned all files, added a test, and stopped using those commands for project files.", "type": "Claude mistake (tooling)"},
+        {"problem": "The tutor added its own analogy and a stray 'not covered' sentence.", "cause": "Small model not following instructions strictly.", "fix": "Stricter rules in the prompt and automatic removal of the stray sentence.", "type": "Model behaviour (found by testing answers)"},
+        {"problem": "'Review pages' link crashed when the page was opened on its own.", "cause": "st.page_link needs the multi-page registry from Home.py.", "fix": "Button + st.switch_page with a specific error fallback; UI test with a real document added.", "type": "Claude bug (UI test gap)"}
+      ],
+      "code": [
+        {"file": "app/ingestion/ocr.py", "why": "Detect a stuck OCR output: normal pages compress to ~44 % of their size, the stuck page to 7 %.", "snippet": "def looks_degenerate(text: str) -> bool:\n    data = text.encode(\"utf-8\")\n    if len(data) > 1500 and len(zlib.compress(data)) / len(data) < 0.2:\n        return True\n    lines = [l.strip() for l in text.splitlines() if len(l.strip()) > 10]\n    return bool(lines) and Counter(lines).most_common(1)[0][1] > 6"}
+      ],
+      "commands": ["uv run python -m app.ingestion scan", "uv run python -m app.ingestion status", "ollama pull qwen3-vl:2b-instruct"],
+      "lessons": ["Benchmark on the owner's real pages before choosing a model.", "Never edit UTF-8 files with Windows PowerShell 5.1 text cmdlets."]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Phase 1 improvements — tables, cloud re-read, summaries, answer reuse (Blueprint v1.4)",
+      "request": "Tables and images were read badly; owner proposed Unstructured/LangChain + Redis. After discussing, owner asked to implement the proposed alternative: table preview, cloud re-read, summaries, similar-question cache.",
+      "what_i_did": [
+        "Benchmarked local vs gpt-5-nano vs gpt-5.4-mini on pages 3, 4, 5, 16 → gpt-5.4-mini for optional cloud re-read (~$0.005/page).",
+        "Review preview tab and lossless Markdown table repair; page summaries/table/figure descriptions; answer-model switch; semantic answer cache with calibrated threshold.",
+        "Re-indexed the owner's reviewed chapter (88 search entries)."
+      ],
+      "files": [
+        {"path": "app/ingestion/ocr.py, enrich.py, service.py", "change": "table repair, cloud re-read, summaries"},
+        {"path": "app/rag/answer_cache.py, store.py, tutor.py", "change": "answer cache, originals-only evidence, index change counter"},
+        {"path": "app/db/migrations.py", "change": "adds new columns to existing databases"}
+      ],
+      "issues": [
+        {"problem": "I said page 5 had the table; it was page 4.", "cause": "I assumed page numbers instead of checking.", "fix": "Checked the page image, re-ran the benchmark on page 4.", "type": "Claude mistake"},
+        {"problem": "My cost estimate for gpt-5.4-mini was $0.002/page; measured $0.005.", "cause": "Estimated instead of measured.", "fix": "Used the measured value everywhere.", "type": "Claude mistake"},
+        {"problem": "My table repair deleted blank exercise rows.", "cause": "An empty row matched my 'separator row' rule (all() of nothing is True).", "fix": "A separator now needs at least one non-empty '---' cell.", "type": "Claude bug (caught by checking real output)"},
+        {"problem": "A generated table description swapped 'acidity' and 'basicity'; the tutor repeated it.", "cause": "Small-model descriptions can be wrong, and I first let them be used as evidence.", "fix": "Descriptions only help find the page; the tutor receives original passages only.", "type": "Claude design mistake (caught by live test)"},
+        {"problem": "After re-indexing a page, search could keep using the old vectors.", "cause": "SQLite reuses row ids, so my 'count + max id' change detector did not change.", "fix": "A real change counter (IndexState.generation).", "type": "Claude bug (caught by a test)"},
+        {"problem": "'Suggested for cloud' listed all 17 pages.", "cause": "Almost every page has a figure.", "fix": "Suggest pages with tables or warnings; 'all pages' is a separate button.", "type": "Claude design mistake"}
+      ],
+      "code": [
+        {"file": "app/rag/tutor.py", "why": "Generated descriptions FIND pages; only ORIGINAL textbook passages are given to the answering model.", "snippet": "for hit in matched:\n    if hit.kind == \"text\":\n        candidates = [hit]\n    else:  # summary / table / figure description\n        page_passages = store.page_text_hits(hit.document_id, hit.page_no, vector, embed_model)\n        candidates = [replace(p, via=hit.kind) for p in page_passages[:2]]"},
+        {"file": "app/ingestion/ocr.py", "why": "An all-empty table row is not a separator row (bug fix).", "snippet": "def is_separator(row):\n    filled = [c for c in row if c]\n    return bool(filled) and all(_SEPARATOR_CELL.match(c) for c in filled)"}
+      ],
+      "commands": ["uv run python -m app.ingestion reindex 1", "uv run python -m app.ingestion cloud 1 --pages 4"],
+      "lessons": ["Generated text is a search aid, not a source of truth.", "Never trust 'count + max id' as a change detector in SQLite."]
+    },
+    {
+      "date": "2026-10-04/05",
+      "title": "Learning log started + Phase 2 — lessons, equation checker, 3D molecules, safe simulations, Teach Mode (Blueprint v1.5)",
+      "request": "Use the 3 suggested pilot topics for Phase 2. From now on record every code change, issue, fix, command and suggestion in docs/Claude Interactions.docx so the owner can learn from the mistakes and see how the AI thinks.",
+      "what_i_did": [
+        "Created this learning log: data in docs/_source/interactions.json, Word file generated by gen_interactions.js (npm run interactions); back-filled the earlier sessions honestly.",
+        "Added RDKit 2026.3.6 (pinned) and stored p5.js 2.3.3 and 3Dmol.js 2.5.5 inside the project (npm --ignore-scripts, lockfile integrity, SHA-256 manifest checked before every use) so lessons work offline.",
+        "Wrote an in-house equation checker (atoms + charge, hydrates, ions, electrons) instead of chempy; molecule table + RDKit 2D/3D; lesson planner from original passages with page citations and one automatic equation-correction round.",
+        "AI-written p5.js simulations with safety rules, structure checks, `node --check` syntax check and up to 2 automatic fixes; shown in a separate frame whose security policy blocks all network access.",
+        "Lesson Studio (create / edit / regenerate / approve) and Teach Mode (slides). Generated the 3 pilot lessons from Chapter 5 (~$0.06 total) and reviewed their content and simulation code against the textbook.",
+        "160 automated tests, pip-audit clean, README section 3c, Blueprint v1.5."
+      ],
+      "files": [
+        {"path": "app/lessons/chemistry.py", "change": "NEW — formula parser and equation balance checker"},
+        {"path": "app/lessons/molecules.py", "change": "NEW — local molecule table, RDKit 2D drawing and 3D coordinates"},
+        {"path": "app/lessons/viewers.py", "change": "NEW — sealed HTML pages for 3D molecules and simulations; vendor SHA-256 check"},
+        {"path": "app/lessons/simulation.py", "change": "NEW — simulation generation, safety/structure/syntax checks, fix loop"},
+        {"path": "app/lessons/planner.py", "change": "NEW — lesson plan from textbook passages, citations → pages, equation correction"},
+        {"path": "app/lessons/service.py", "change": "NEW — lesson create/plan/simulate/edit/approve, background jobs"},
+        {"path": "app/db/models.py, migrations.py", "change": "Lesson table; job.lesson_id column (added to existing database automatically)"},
+        {"path": "app/jobs/runner.py", "change": "lesson_plan and simulation jobs; workers only claim job kinds they support"},
+        {"path": "ui/pages/1_Teach_Mode.py, 2_Lesson_Studio.py, ui/lesson_views.py", "change": "NEW pages and display helpers"},
+        {"path": "assets/vendor/*", "change": "NEW — offline p5.js and 3Dmol.js with manifest.json"},
+        {"path": "config/models.yaml", "change": "lesson_plan (JSON output, larger context) and simulation_code settings"},
+        {"path": "docs/_source/interactions.json, gen_interactions.js", "change": "NEW — this learning log"},
+        {"path": "tests/test_chemistry.py, test_lessons.py, test_ui.py", "change": "51 new tests (160 in total)"}
+      ],
+      "issues": [
+        {"problem": "Two of the three pilot lesson jobs failed with 'Unknown job kind lesson_plan'.", "cause": "The owner's app had been running since before Phase 2; its background worker (old code) picked up the new jobs first and failed them.", "fix": "Workers now only claim job kinds they support (others stay queued). Lessons 2 and 3 were generated directly; README tells to restart the app after updates.", "type": "Process / version mismatch (found in the live run)"},
+        {"problem": "New lesson tests failed: 'No reviewed textbook pages match'.", "cause": "The fake word-count embeddings used in tests score lower than the real model, so the real 0.45 threshold filtered everything out.", "fix": "Threshold became a setting (default 0.45 for real use); tests use 0.1.", "type": "Claude test-design mistake"},
+        {"problem": "My first charge-parsing code tried to guess whether 'Fe3+' means a 3+ charge or three Fe atoms.", "cause": "Over-engineering an ambiguous notation.", "fix": "Simplified: charges must be written Fe³⁺ / Fe^3+ or a single sign (OH-); ambiguous ASCII is reported, never guessed (tested).", "type": "Claude mistake (caught on self-review)"},
+        {"problem": "The rule against accessing the surrounding app would also have rejected harmless code like box.top.x.", "cause": "Pattern too broad ('top.').", "fix": "Narrowed to the dangerous forms (window.parent, top.document, …) and added a test with harmless look-alikes.", "type": "Claude mistake (caught on self-review)"},
+        {"problem": "Lesson 3 listed ferrous sulphate, washing soda and alum, which were missing from the molecule table ('not available').", "cause": "The local table only covered the substances I expected.", "fix": "Added the three substances and a test that every molecule used by the pilot lessons is available.", "type": "Claude mistake (caught by reviewing the generated lessons)"},
+        {"problem": "I wrote a pointless helper function in viewers.py just to keep an unused import.", "cause": "Sloppy code.", "fix": "Removed both.", "type": "Claude mistake (caught on self-review)"},
+        {"problem": "An edit to the molecule-name list did not apply.", "cause": "The code formatter had re-wrapped the block, so the text I searched for no longer existed.", "fix": "Re-read the current file and applied the edit again; verified by test.", "type": "Tooling"},
+        {"problem": "The session was interrupted by an 'API Error … safeguards flagged this message'.", "cause": "The AI service's automatic safety filter occasionally flags normal technical conversations (false positive); not caused by the project or the owner.", "fix": "Nothing was lost (all work is on disk); the work was resumed in the next message.", "type": "AI service infrastructure"}
+      ],
+      "code": [
+        {"file": "app/lessons/chemistry.py", "why": "The app — not the AI — decides whether an equation is balanced: atoms of every element and the total charge must match on both sides.", "snippet": "(left_atoms, left_charge), (right_atoms, right_charge) = total(left), total(right)\nfor element in sorted(set(left_atoms) | set(right_atoms)):\n    if left_atoms[element] != right_atoms[element]:\n        problems.append(f\"{element}: {left_atoms[element]} on the left, {right_atoms[element]} on the right\")\nif left_charge != right_charge:\n    problems.append(f\"charge: {left_charge:+d} on the left, {right_charge:+d} on the right\")"},
+        {"file": "app/lessons/simulation.py", "why": "Every AI-written simulation must pass all checks; problems are sent back to the model to fix (at most 2 times).", "snippet": "for round_no in range(MAX_FIX_ROUNDS + 1):\n    result = router.complete(SIM_TASK, messages)\n    code = strip_fences(result.text)\n    problems = check_sketch(code)   # safety rules + structure + node --check\n    if not problems:\n        return SimulationResult(code, True, [], round_no, ...)\n    messages += [{\"role\": \"assistant\", \"content\": code},\n                 {\"role\": \"user\", \"content\": \"The code was rejected:\\n- \" + \"\\n- \".join(problems)}]"},
+        {"file": "app/lessons/viewers.py", "why": "The page that shows a simulation is not allowed to contact the internet at all (Content-Security-Policy).", "snippet": "CSP = (\n    \"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; \"\n    \"img-src data: blob:; font-src data:; connect-src 'none'; worker-src blob:\"\n)"},
+        {"file": "app/jobs/runner.py", "why": "Fix for the live incident: a worker never takes a job type it does not understand.", "snippet": "SUPPORTED_KINDS = (\"extract\", \"index\", \"reread_cloud\", \"lesson_plan\", \"simulation\")\n...\nselect(Job.id).where(Job.status == \"queued\", col(Job.kind).in_(SUPPORTED_KINDS)).order_by(Job.id)"}
+      ],
+      "commands": [
+        "uv add \"rdkit==2026.3.6\"",
+        "cd assets/vendor/_npm && npm install --no-audit --no-fund --ignore-scripts",
+        "Get-FileHash assets\\vendor\\p5.min.js -Algorithm SHA256   (recorded in manifest.json)",
+        "uv run pytest   (160 passed)",
+        "powershell -ExecutionPolicy Bypass -File scripts\\audit.ps1   (no known vulnerabilities)",
+        "cd docs/_source && npm run blueprint && npm run interactions"
+      ],
+      "lessons": [
+        "After changing code, restart every running copy of the app — old processes keep old code.",
+        "Let deterministic code check AI output (equations, code safety) instead of trusting the AI.",
+        "Review generated lessons yourself: the review found missing molecules that no automatic check flagged."
+      ]
+    }
+  ]
+}

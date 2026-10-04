@@ -1,0 +1,11 @@
+{
+    "note":  "Offline copies of pinned browser libraries (from assets/vendor/_npm/package-lock.json). The app refuses to use a file whose SHA-256 does not match.",
+    "versions":  {
+                     "p5.min.js":  "p5 2.3.3",
+                     "3Dmol-min.js":  "3dmol 2.5.5"
+                 },
+    "sha256":  {
+                   "p5.min.js":  "3f8a0c739bd3c6350e239ff7187d38656ed2247e30a2b8084fd16a91e6e843ac",
+                   "3Dmol-min.js":  "f7cc78921ae72e7623e89cdd111434f58c2efddd2ffda1cd212644b406fb8016"
+               }
+}

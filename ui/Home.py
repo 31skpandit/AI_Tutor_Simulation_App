@@ -10,7 +10,10 @@ from app.llm.health import configured_models, ollama_has, ollama_models
 
 page("Home", "🎓")
 st.title("🎓 AI Teaching Studio")
-st.caption("Phase 0 — foundation: security, AI gateway, cost control.  Use the sidebar to open a page.")
+st.caption(
+    "Workflow: **Syllabus Library** (add files) → **Review Text** (check & approve pages) → **AI Tutor** "
+    "(ask questions answered from your textbook). Use the sidebar to open a page."
+)
 
 st.subheader("Security checks")
 for result in run_all():
@@ -43,14 +46,29 @@ with right:
     st.metric("Spent", f"${spent:.4f}", help="Calendar month, local time")
     st.progress(min(spent / cap, 1.0) if cap else 1.0, text=f"of ${cap:.2f} cap")
 
+st.subheader("Textbook library")
+from common import get_ingestion  # noqa: E402
+
+library = get_ingestion()
+documents = library.documents()
+if documents:
+    totals = [library.page_counts(d.id) for d in documents]
+    a, b, c, d = st.columns(4)
+    a.metric("Documents", len(documents))
+    b.metric("Pages extracted", sum(t["done"] for t in totals))
+    c.metric("Pages reviewed", sum(t["reviewed"] for t in totals))
+    d.metric("Pages searchable", sum(t["indexed"] for t in totals))
+else:
+    st.info("No textbook files yet — open **Syllabus Library** to add one.")
+
 st.divider()
 st.subheader("Roadmap")
 st.markdown(
     """
 | Phase | Scope | Status |
 |---|---|---|
-| 0 | Setup, security, AI gateway, cost control | **in progress** |
-| 1 | Syllabus upload, OCR, RAG, AI tutor with citations | next |
+| 0 | Setup, security, AI gateway, cost control | ✅ done |
+| 1 | Syllabus upload, OCR, review, search, AI tutor with citations | **ready to test** |
 | 2 | Lessons, chemistry visuals, simulations, Teach Mode | planned |
 | 3 | Animated videos, narration (EN; HI/MR on request) | planned |
 | 4 | Quizzes, library, PDF export, polish | planned |

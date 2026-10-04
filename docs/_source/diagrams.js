@@ -91,7 +91,7 @@ function save(name, s) {
 
   band(602, 196, C.purple, ['AI GATEWAY', 'LiteLLM router']);
   b += box(205, 620, 380, 124, ['LLM Router + LiteLLM 1.102.1 (SDK)', 'config/models.yaml: task → model', 'fallbacks · budget · cache · allow-list', 'keys from Credential Manager'], C.purple);
-  b += box(625, 620, 265, 124, ['Ollama — local, free', 'qwen3:4b-instruct (text)', 'qwen3-vl:4b (OCR / vision)', 'qwen3-embedding:0.6b'], C.purple);
+  b += box(625, 620, 265, 124, ['Ollama — local, free', 'qwen3:4b-instruct (text)', 'qwen3-vl:2b-instruct (OCR)', 'qwen3-embedding:0.6b'], C.purple);
   b += box(910, 620, 265, 124, ['OpenAI — paid, low-cost', 'mini / nano text tiers', 'vision · TTS · images', 'used only when needed'], C.purple);
   b += box(1195, 620, 265, 124, ['Optional free / cheap', 'Hugging Face Inference', 'Gemini free tier · Groq', 'OpenRouter free models'], C.purple, { dashed: true });
   b += `<path d="M395,744 L395,774 L1327,774" fill="none" stroke="${C.line}" stroke-width="2.2"/>`;
@@ -101,7 +101,7 @@ function save(name, s) {
   row(855, 70, 5, [['Manim + FFmpeg', 'animated videos'], ['RDKit · py3Dmol · chempy', 'molecules & equations'], ['HTML/JS sandbox', 'p5.js · three.js · PhET'], ['edge-tts / OpenAI TTS', 'EN · HI · MR voices'], ['PyMuPDF · Pillow', 'PDF & image processing']], C.amber);
 
   band(982, 140, C.teal, ['DATA', 'on your laptop', '(data/ folder)']);
-  row(1000, 104, 4, [['SQLite (SQLModel)', 'subjects · chapters · lessons', 'jobs · LLM cost log'], ['ChromaDB', 'textbook chunks + vectors', 'with chapter/page metadata'], ['File storage', 'uploads · videos · simulations', 'images · audio'], ['Response cache', 'same request → reuse result', 'cost = 0']], C.teal);
+  row(1000, 104, 4, [['SQLite (SQLModel)', 'documents · pages · jobs', 'LLM cost log · cache'], ['Vector index', 'SQLite + NumPy search', 'passages with chapter/page'], ['File storage', 'uploads · videos · simulations', 'images · audio'], ['Response cache', 'same request → reuse result', 'cost = 0']], C.teal);
 
   const gaps = [[170, 206, 'browser (HTTP)'], [318, 354, 'Python calls'], [566, 602, 'LLM requests'], [798, 834, 'render / run'], [946, 982, 'read / write']];
   gaps.forEach(([a, z, l]) => { b += arrow([[1320, a + 2], [1320, z - 2]], null, { both: true }); b += `<text x="1334" y="${(a + z) / 2 + 5}" font-family="${FONT}" font-size="13" fill="${C.mute}">${l}</text>`; });
@@ -147,16 +147,16 @@ function save(name, s) {
 // ---------- 3. Ingestion / RAG pipeline ----------
 (function () {
   const W = 1560, H = 620; let b = '';
-  b += box(30, 120, 270, 110, ['Inputs', 'syllabus PDF · textbook PDFs', 'photos of textbook pages'], C.gray);
+  b += box(30, 120, 270, 110, ['Inputs (source/ or upload)', 'PDF · photos · DOCX · TXT', 'SHA-256: never twice'], C.gray);
   b += box(340, 120, 270, 110, ['Pre-process', 'PyMuPDF: split PDF pages', 'Pillow: rotate · crop · enhance'], C.blue);
   b += diamond(752, 175, 100, 64, ['Digital text', 'layer present?']);
   b += box(900, 52, 300, 84, ['Direct text extraction', 'PyMuPDF — free and exact'], C.green);
-  b += box(900, 208, 300, 104, ['OCR with vision model', 'local: qwen3-vl:4b (free)', 'fallback: OpenAI vision (low cost)'], C.purple);
+  b += box(900, 208, 300, 104, ['OCR with vision model', 'local: qwen3-vl:2b-instruct (free)', 'fallback: OpenAI vision (low cost)'], C.purple);
   b += box(1260, 120, 270, 110, ['Your review', 'fix OCR mistakes,', 'confirm chapter / topic tags'], C.amber);
   b += box(1260, 390, 270, 116, ['Structure & tag', 'Class · Subject · Chapter', 'Topic · page numbers'], C.blue);
   b += box(930, 390, 290, 116, ['Chunk', '~400–600 tokens, overlap', 'heading-aware splitting'], C.blue);
   b += box(600, 390, 290, 116, ['Embed', 'qwen3-embedding:0.6b', 'local, free, multilingual'], C.purple);
-  b += box(270, 390, 290, 116, ['Store', 'ChromaDB: vectors + metadata', 'SQLite: documents & pages'], C.teal);
+  b += box(270, 390, 290, 116, ['Store', 'SQLite: passages + vectors', 'duplicates stored once'], C.teal);
   b += box(30, 404, 200, 88, ['Ready for RAG', 'Tutor & Lesson Studio'], C.gray, { pill: true });
   b += arrow([[300, 175], [340, 175]]); b += arrow([[610, 175], [652, 175]]);
   b += arrow([[752, 111], [752, 94], [900, 94]], 'Yes', { at: [810, 94] });
@@ -239,7 +239,7 @@ function save(name, s) {
   const W = 1500, H = 430; let b = '';
   const P = [
     ['Phase 0 ✓', 'Setup', 'done 3 Oct 2026', ['Python 3.12 via uv', 'FFmpeg · MiKTeX · Ollama', 'secure, hash-locked deps', 'AI gateway + cost log'], C.gray],
-    ['Phase 1', 'Syllabus & AI Tutor', '~1.5 weeks', ['upload PDFs / photos', 'OCR + your review', 'RAG with ChromaDB', 'tutor chat with citations'], C.blue],
+    ['Phase 1 ▶', 'Syllabus & AI Tutor', 'built · testing', ['PDF / photo / DOCX upload', 'OCR + your review', 'RAG (SQLite + NumPy)', 'tutor with page citations'], C.blue],
     ['Phase 2', 'Lessons & Simulations', '~2 weeks', ['lesson planner', 'chemistry visualizer', 'interactive simulations', 'Teach Mode (projector)'], C.green],
     ['Phase 3', 'Videos & Narration', '~2 weeks', ['Manim animations', 'EN voice; HI / MR on request', 'images (optional)', 'background render jobs'], C.purple],
     ['Phase 4', 'Quiz & Polish', '~1 week', ['quiz generator', 'lesson library & search', 'export notes (PDF)', 'tests + user guide'], C.amber],

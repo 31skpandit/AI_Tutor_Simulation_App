@@ -1,0 +1,9 @@
+{
+  "name": "ai-teaching-studio-vendor",
+  "private": true,
+  "description": "Pinned browser libraries copied into assets/vendor for offline simulations and 3D molecules",
+  "dependencies": {
+    "p5": "2.3.3",
+    "3dmol": "2.5.5"
+  }
+}
