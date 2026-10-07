@@ -6,8 +6,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # make ui/common.p
 import common  # noqa: E402,F401
 import streamlit as st  # noqa: E402
 from common import ingestion_or_stop, page  # noqa: E402
-from lesson_views import render_equations, render_molecules, render_simulation  # noqa: E402
+from lesson_views import (  # noqa: E402
+    available_scenes,
+    lesson_figures,
+    lesson_profile,
+    render_equations,
+    render_figures,
+    render_history_scene,
+    render_map,
+    render_molecules,
+    render_people,
+    render_scene,
+    render_simulation,
+    render_timeline,
+)
 
+from app.lessons.history import flow_scenes  # noqa: E402
 from app.lessons.service import LessonService  # noqa: E402
 
 page("Teach Mode", "🧑‍🏫")
@@ -22,6 +36,8 @@ st.markdown(
 )
 
 show_drafts = st.sidebar.toggle("Also show draft lessons", value=False)
+st.sidebar.toggle("Atom labels on molecules (Cu²⁺, O⁻ …)", value=True, key="teach_atom_labels")
+st.sidebar.toggle("3D bonding & reaction slides", value=True, key="teach_scenes")
 available = [x for x in lessons.lessons() if x.status == "approved" or (show_drafts and x.status == "draft")]
 if not available:
     st.title("🧑‍🏫 Teach Mode")
@@ -34,10 +50,22 @@ plan = lessons.plan(lesson)
 
 slides: list[tuple[str, str]] = [("title", "")]
 slides += [("section", str(i)) for i in range(len(plan.get("sections", [])))]
+if lesson_profile(plan) == "history":  # timeline → map → causes & effects → people → textbook pictures
+    if plan.get("timeline") or plan.get("periods"):
+        slides.append(("timeline", ""))
+    if plan.get("places"):
+        slides.append(("map", ""))
+    slides += [("cause", str(i)) for i in range(len(flow_scenes(plan)))]
+    if plan.get("people"):
+        slides.append(("people", ""))
+    if lesson_figures(lesson.document_id, plan, service.engine):
+        slides.append(("pictures", ""))
 if plan.get("equations"):
     slides.append(("equations", ""))
 if plan.get("molecules"):
     slides.append(("molecules", ""))
+if st.session_state.get("teach_scenes", True):
+    slides += [("scene", source) for source in available_scenes(plan)[0]]
 if lesson.simulation_js:
     slides.append(("simulation", ""))
 slides.append(("summary", ""))
@@ -64,7 +92,28 @@ elif kind == "equations":
     render_equations(plan, big=True)
 elif kind == "molecules":
     st.title("Molecules — rotate them!")
-    render_molecules(plan, show_3d=True, height=420)
+    render_molecules(
+        plan, show_3d=True, height=420, show_atom_labels=st.session_state.get("teach_atom_labels", True)
+    )
+elif kind == "timeline":
+    st.title("Timeline")
+    render_timeline(plan, height=600, big=True)
+elif kind == "map":
+    st.title("On the map")
+    render_map(plan, height=700, big=True)
+elif kind == "cause":
+    scene = flow_scenes(plan)[int(arg)]
+    st.title(scene["event"])
+    render_history_scene(scene, height=560, big=True)
+elif kind == "people":
+    st.title("People in this lesson")
+    render_people(plan, lesson_figures(lesson.document_id, plan, service.engine), big=True)
+elif kind == "pictures":
+    st.title("Pictures from your textbook")
+    render_figures(lesson_figures(lesson.document_id, plan, service.engine))
+elif kind == "scene":
+    st.title("See it happen — " + arg)
+    render_scene(arg, height=660, big=True)
 elif kind == "simulation":
     st.title(plan.get("simulation", {}).get("title", "Try it yourself"))
     render_simulation(lesson, height=680)

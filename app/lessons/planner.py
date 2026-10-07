@@ -8,6 +8,7 @@ import json
 import re
 from dataclasses import dataclass
 
+from app.lessons import history
 from app.lessons.chemistry import check_equation
 from app.llm.router import LLMRouter
 from app.rag.store import Hit, SearchFilters, VectorStore
@@ -15,6 +16,9 @@ from app.rag.tutor import EMBED_TASK, embed_question, original_passages
 
 PLAN_TASK = "lesson_plan"
 EVIDENCE_PASSAGES = 8
+# A history lesson usually spans a whole chapter (dates and events on every page).
+HISTORY_EVIDENCE_PASSAGES = 16
+WHOLE_CHAPTER_MAX_CHARS = 60_000  # ≈ 15 000 tokens: a whole chapter costs ≈ 1 ¢ with gpt-5.4-mini
 MIN_RELEVANCE = 0.45  # slightly below the tutor's 0.50: a topic name is shorter than a question
 
 SYSTEM_PROMPT = """You are an experienced {audience} teacher preparing a lesson for your own class.
@@ -54,15 +58,14 @@ def gather_evidence(
     topic: str,
     filters: SearchFilters | None,
     min_relevance: float = MIN_RELEVANCE,
+    count: int = EVIDENCE_PASSAGES,
 ) -> list[Hit]:
     embed_model = router.config.tasks[EMBED_TASK].primary
     vector = embed_question(router, topic)
     matched = [
-        h
-        for h in store.search(vector, embed_model, k=EVIDENCE_PASSAGES * 2, filters=filters)
-        if h.score >= min_relevance
+        h for h in store.search(vector, embed_model, k=count * 2, filters=filters) if h.score >= min_relevance
     ]
-    return original_passages(store, matched, vector, embed_model, EVIDENCE_PASSAGES)
+    return original_passages(store, matched, vector, embed_model, count)
 
 
 def parse_plan(text: str) -> dict:
@@ -74,6 +77,8 @@ def parse_plan(text: str) -> dict:
         if not plan.get(key):
             raise PlanningError(f"The lesson plan has no '{key}'.")
     for key in ("objectives", "key_points", "equations", "molecules", "vocabulary"):
+        plan.setdefault(key, [])
+    for key in ("timeline", "periods", "people", "places", "cause_effect"):
         plan.setdefault(key, [])
     plan.setdefault("simulation", {})
     return plan
@@ -100,22 +105,39 @@ def plan_lesson(
     subject: str = "",
     min_relevance: float = MIN_RELEVANCE,
 ) -> PlanResult:
-    evidence = gather_evidence(router, store, topic, filters, min_relevance)
+    kind = history.profile(subject)
+    count = HISTORY_EVIDENCE_PASSAGES if kind == "history" else EVIDENCE_PASSAGES
+    evidence = []
+    if kind == "history" and filters and len(filters.document_ids) == 1:
+        # Measured on the owner's history chapter: searching for the topic 'Economic Development' found passages
+        # from only 3 of 8 pages (bank nationalisation, the 1975 programme and the 1982 strike were missed). A
+        # history lesson follows its whole chapter, so a chapter that fits is given complete, in page order.
+        chapter = store.document_text_hits(filters.document_ids[0], router.config.tasks[EMBED_TASK].primary)
+        if chapter and sum(len(h.text) for h in chapter) <= WHOLE_CHAPTER_MAX_CHARS:
+            evidence = chapter
+    if not evidence:
+        evidence = gather_evidence(router, store, topic, filters, min_relevance, count)
+    evidence = history.without_exercises(evidence)  # no quiz blanks / deliberately wrong pairs
     if not evidence:
         raise PlanningError(
             f"No reviewed textbook pages match '{topic}'. Check the chapter filter or review/index pages."
         )
     audience = " ".join(x for x in [f"Class {class_level}" if class_level else "", subject] if x) or "school"
     extracts = "\n\n".join(f"[{n}] ({hit.citation})\n{hit.text}" for n, hit in enumerate(evidence, start=1))
+    prompt = history.SYSTEM_PROMPT if kind == "history" else SYSTEM_PROMPT
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT.format(audience=audience)},
+        {"role": "system", "content": prompt.format(audience=audience)},
         {"role": "user", "content": f"Lesson topic: {topic}\n\nTextbook extracts:\n\n{extracts}"},
     ]
     result = router.complete(PLAN_TASK, messages)
     cost, model_ref = result.cost_usd, result.model_ref
     plan = parse_plan(result.text)
+    plan["profile"] = kind
     warnings = []
 
+    if kind == "history":  # dates, names and places must be in the cited textbook text
+        warnings += history.verify(plan, {n: hit.text for n, hit in enumerate(evidence, start=1)})
+        plan["equations"], plan["molecules"], plan["simulation"] = [], [], {}
     bad = check_equations(plan)
     if bad:  # one correction round with the checker's exact findings
         listing = "\n".join(f"- {item['equation']}: {item['check']}" for item in bad)
@@ -147,6 +169,9 @@ def plan_lesson(
         section["pages"] = sorted({pages[c] for c in cites})
         if not section["pages"]:
             warnings.append(f"Section '{section.get('heading', '?')}' cites no textbook extract — check it.")
+    for key in ("timeline", "periods", "people", "places", "cause_effect"):
+        for item in plan.get(key, []):
+            item["pages"] = history.pages_of(item, pages)
     plan["sources"] = [
         {"n": n, "page": hit.page_no, "citation": hit.citation, "text": hit.text}
         for n, hit in enumerate(evidence, start=1)

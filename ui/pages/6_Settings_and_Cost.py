@@ -10,6 +10,7 @@ from sqlmodel import Session, select  # noqa: E402
 
 from app.core.secrets import KNOWN_SECRETS, delete_secret, has_secret, set_secret  # noqa: E402
 from app.db.models import LLMCall  # noqa: E402
+from app.lessons.browser_check import find_browser  # noqa: E402
 from app.tools.verify_models import verify  # noqa: E402
 
 page("Settings & Cost", "⚙️")
@@ -98,6 +99,8 @@ st.markdown(
 | Page summaries + table/figure descriptions when indexing (`ATS_ENRICH_PAGES`) | {settings.enrich_pages} |
 | Reuse answers to very similar questions (`ATS_SEMANTIC_CACHE`) | {settings.semantic_cache} |
 | Similarity needed to reuse an answer (`ATS_SEMANTIC_CACHE_MIN`) | {settings.semantic_cache_min} |
+| Test every new simulation in a hidden browser (`ATS_BROWSER_CHECK`) | {settings.browser_check} |
+| Browser used for that test (`ATS_BROWSER_PATH`, empty = found automatically) | {find_browser() or "none found"} |
 """
 )
 st.caption("Change these in `.env`, then restart the app.")

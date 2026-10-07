@@ -187,6 +187,33 @@ class VectorStore:
         ]
         return sorted(hits, key=lambda h: h.score, reverse=True)
 
+    def document_text_hits(self, document_id: int, embed_model: str) -> list[Hit]:
+        """Every original passage of a document in page order (for lessons that cover a whole chapter)."""
+        with Session(self.engine) as s:
+            rows = s.exec(
+                select(Chunk, Document)
+                .join(Document, Document.id == Chunk.document_id)
+                .where(
+                    Chunk.document_id == document_id, Chunk.kind == "text", Chunk.embed_model == embed_model
+                )
+                .order_by(Chunk.page_no, Chunk.id)
+            ).all()
+        return [
+            Hit(
+                chunk_id=chunk.id,
+                score=1.0,
+                text=chunk.text,
+                page_no=chunk.page_no,
+                document_id=doc.id,
+                filename=doc.filename,
+                class_level=doc.class_level,
+                subject=doc.subject,
+                chapter_no=doc.chapter_no,
+                chapter_title=doc.chapter_title,
+            )
+            for chunk, doc in rows
+        ]
+
     def search(
         self, query_vector: list[float], embed_model: str, k: int = 5, filters: SearchFilters | None = None
     ) -> list[Hit]:

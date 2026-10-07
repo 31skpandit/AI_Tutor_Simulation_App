@@ -42,6 +42,7 @@ CONFIG = {
         "enrich": {"primary": "ollama/small", "json_output": True},
         "tutor_answer": {"primary": "ollama/small"},
         "tutor_answer_indic": {"primary": "ollama/small"},
+        "simulation_review": {"primary": "ollama/small", "json_output": True, "cache": False},
     },
 }
 

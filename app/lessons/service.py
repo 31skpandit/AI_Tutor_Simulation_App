@@ -9,7 +9,7 @@ from sqlmodel import Session, col, select
 
 from app.db.models import Document, Job, Lesson, utcnow
 from app.lessons.planner import MIN_RELEVANCE, PlanningError, plan_lesson, simulation_facts
-from app.lessons.simulation import check_sketch, generate_simulation
+from app.lessons.simulation import check_runtime, check_sketch, generate_simulation
 from app.llm.router import AllModelsFailed, LLMRouter
 from app.rag.store import SearchFilters, VectorStore
 
@@ -155,6 +155,8 @@ class LessonService:
 
     def save_simulation_code(self, lesson_id: int, code: str) -> list[str]:
         problems = check_sketch(code)
+        if not problems:  # also run it in the hidden browser and use every control (no AI cost)
+            problems = check_runtime(code).problems
         self._update(
             lesson_id,
             simulation_js=code,

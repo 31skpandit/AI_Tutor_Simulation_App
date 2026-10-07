@@ -1,0 +1,22 @@
+{
+  "built": "2026-10-07",
+  "sources": {
+    "south_asia.json": {
+      "from": "Natural Earth 1:10m Admin-0 countries, India point of view (ne_10m_admin_0_countries_ind)",
+      "url": "https://www.naturalearthdata.com/ (GitHub nvkelso/natural-earth-vector)",
+      "licence": "Public domain",
+      "input_sha256": "3e67a5a6ddeff3247ca8400cd2514fd4a5ac6e5432823b25d610a7028597d45f"
+    },
+    "in_places.tsv.gz": {
+      "from": "GeoNames India gazetteer (IN.zip) + admin1 codes",
+      "url": "https://download.geonames.org/export/dump/",
+      "licence": "CC BY 4.0 \u2014 credit: GeoNames (www.geonames.org)",
+      "input_sha256": "0dba3367bfd204677554672eb591f8711b6ee388fe242e6661db2024a24d6121",
+      "rows": 562753
+    }
+  },
+  "sha256": {
+    "south_asia.json": "916692a11ed718cab45314c1ca53ccfa0ff6fdad5d2c5f626ff9bab51574b365",
+    "in_places.tsv.gz": "f8cc88566a2c0b1de5b2346f329f0bef081e71173bbcf1afbf76e57de91518e0"
+  }
+}

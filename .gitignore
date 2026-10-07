@@ -25,3 +25,5 @@ __pycache__/
 .idea/
 Thumbs.db
 ~$*.docx
+
+*.claude/

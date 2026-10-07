@@ -18,6 +18,7 @@ PAGES = [
     "ui/pages/1_Teach_Mode.py",
     "ui/pages/5_AI_Tutor.py",
     "ui/pages/6_Settings_and_Cost.py",
+    "ui/pages/7_Chemistry_3D_Lab.py",
 ]
 
 
@@ -116,7 +117,7 @@ def test_lesson_studio_shows_the_lesson(approved_lesson):
     at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/2_Lesson_Studio.py"), default_timeout=60).run()
     assert not at.exception, [e.value for e in at.exception]
     assert any("Neutralisation" in m.value for m in at.markdown)
-    assert at.tabs and len(at.tabs) == 4
+    assert at.tabs and len(at.tabs) == 5  # content, chemistry, 3D scenes, simulation, sources
 
 
 def test_teach_mode_walks_through_every_slide(approved_lesson):
@@ -130,12 +131,75 @@ def test_teach_mode_walks_through_every_slide(approved_lesson):
         nxt.click().run()
         assert not at.exception, [e.value for e in at.exception]
         titles.append(at.title[0].value)
-    # title, 1 section, equations, molecules, simulation, key points
+    # title, 1 section, equations, molecules, 3D scenes (molecule, then equation), simulation, key points
     assert titles == [
         "Neutralisation",
         "What happens",
         "Equations",
         "Molecules — rotate them!",
+        "See it happen — H₂O",
+        "See it happen — HCl + NaOH → NaCl + H₂O",
         "Titration",
         "Key points",
     ]
+
+
+HISTORY_PLAN = {
+    "title": "Economic Development",
+    "profile": "history",
+    "objectives": ["Explain the five year plans"],
+    "sections": [{"heading": "Mixed economy", "content": "Public and private sector [1].", "cites": [1], "pages": [1]}],
+    "key_points": ["India chose a mixed economy"],
+    "timeline": [{"date": "19th July 1969", "year": 1969, "event": "14 banks nationalised", "pages": [1]}],
+    "periods": [{"name": "First Five Year Plan", "start": 1951, "end": 1956, "focus": "agriculture", "pages": [1]}],
+    "people": [{"name": "Dr Datta Samant", "role": "led the mill workers' strike", "pages": [1]}],
+    "places": [{"name": "Bhilai", "what": "steel plant", "pages": [1]}, {"name": "Damodar", "what": "dam"}],
+    "cause_effect": [{"event": "Mill workers' strike", "causes": ["bonus cut"], "effects": ["mills closed"], "pages": [1]}],
+    "sources": [{"n": 1, "page": 1, "citation": "Ch. 4, page 1", "text": "Acids are sour."}],
+}  # fmt: skip
+
+
+@pytest.fixture
+def approved_history_lesson(library_with_a_document):
+    import json
+
+    from sqlmodel import Session
+
+    from app.db.models import Lesson
+    from app.db.session import make_engine
+
+    with Session(make_engine(get_settings().db_path)) as s:
+        lesson = Lesson(topic="Economic Development", title="Economic Development", status="approved",
+                        plan_json=json.dumps(HISTORY_PLAN, ensure_ascii=False), document_id=library_with_a_document.id)  # fmt: skip
+        s.add(lesson)
+        s.commit()
+        s.refresh(lesson)
+        return lesson.id
+
+
+def test_history_lesson_has_its_own_tabs_and_slides(approved_history_lesson):
+    at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/2_Lesson_Studio.py"), default_timeout=90).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert len(at.tabs) == 6  # content, timeline, map, causes & effects, people & pictures, sources
+    assert any("Damodar" in t.label for t in at.text_input)  # unplaced place → hint box for the teacher
+    at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/1_Teach_Mode.py"), default_timeout=90).run()
+    titles = [at.title[0].value]
+    for _ in range(12):
+        nxt = next(b for b in at.button if b.label == "Next ▶")
+        if nxt.disabled:
+            break
+        nxt.click().run()
+        assert not at.exception, [e.value for e in at.exception]
+        titles.append(at.title[0].value)
+    assert titles == ["Economic Development", "Mixed economy", "Timeline", "On the map", "Mill workers' strike",
+                      "People in this lesson", "Key points"]  # fmt: skip
+
+
+def test_chemistry_lab_example_buttons_and_typed_input():
+    at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/7_Chemistry_3D_Lab.py"), default_timeout=60).run()
+    assert not at.exception, [e.value for e in at.exception]
+    next(b for b in at.button if b.label == "2H₂ + O₂ → 2H₂O").click().run()
+    assert not at.exception and at.session_state["lab3d"] == "2H₂ + O₂ → 2H₂O"
+    at.text_input[0].input("H2SO4").run()  # cannot be shown: a clear reason, not a crash
+    assert not at.exception
+    assert any("H2SO4" in i.value and "12 electrons" in i.value for i in at.info)

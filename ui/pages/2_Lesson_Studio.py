@@ -4,11 +4,26 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # make ui/common.py importable
 
 import json  # noqa: E402
+import re  # noqa: E402
 
 import common  # noqa: E402,F401
 import streamlit as st  # noqa: E402
 from common import ingestion_or_stop, page  # noqa: E402
-from lesson_views import render_equations, render_molecules, render_simulation  # noqa: E402
+from lesson_views import (  # noqa: E402
+    available_scenes,
+    lesson_figures,
+    lesson_profile,
+    render_cause_effect,
+    render_equations,
+    render_figures,
+    render_map,
+    render_molecules,
+    render_people,
+    render_scene,
+    render_simulation,
+    render_timeline,
+    scene_or_reason,
+)
 
 from app.jobs.runner import queue_summary  # noqa: E402
 from app.lessons.service import LessonService  # noqa: E402
@@ -18,7 +33,8 @@ st.title("🛠️ Lesson Studio")
 st.caption(
     "Create a lesson from your reviewed textbook pages → check and edit it → approve → present it in Teach Mode. "
     "Lesson text and simulations are written by gpt-5.4-mini (≈ 2–5 ¢ per lesson, made once); equations are checked "
-    "automatically and simulations pass safety and syntax checks before you see them."
+    "automatically; simulations pass safety and syntax checks, a run in a hidden browser (every control is used) and "
+    "an automatic picture check before you see them. 3D bonding & reaction scenes are computed without AI."
 )
 service, worker = ingestion_or_stop()
 lessons = LessonService(service.engine, service.router, service.settings.lesson_min_relevance)
@@ -105,9 +121,30 @@ st.caption(
 for warning in warnings:
     st.warning(warning)
 
-content_tab, chem_tab, sim_tab, src_tab = st.tabs(
-    ["📄 Content", "⚗️ Equations & molecules", "🧪 Simulation", "📚 Textbook sources"]
-)
+is_history = lesson_profile(plan) == "history"
+if (
+    is_history
+):  # history / social-science lessons: timeline, map, causes & effects, people and textbook pictures
+    content_tab, time_tab, map_tab, cause_tab, people_tab, src_tab = st.tabs(
+        [
+            "📄 Content",
+            "🕰️ Timeline",
+            "🗺️ Map",
+            "🔗 Causes & effects",
+            "👤 People & pictures",
+            "📚 Textbook sources",
+        ]
+    )
+else:
+    content_tab, chem_tab, scenes_tab, sim_tab, src_tab = st.tabs(
+        [
+            "📄 Content",
+            "⚗️ Equations & molecules",
+            "🎬 3D bonding & reactions",
+            "🧪 Simulation",
+            "📚 Textbook sources",
+        ]
+    )
 
 with content_tab, st.form(f"edit_{lesson.id}_{lesson.version}"):
     title = st.text_input("Title", plan.get("title", lesson.title))
@@ -121,10 +158,14 @@ with content_tab, st.form(f"edit_{lesson.id}_{lesson.version}"):
         text = st.text_area(f"Section {index + 1} text", section.get("content", ""), height=170)
         new_sections.append(dict(section, heading=heading, content=text))
     key_points = st.text_area("Key points (one per line)", "\n".join(plan.get("key_points", [])), height=120)
-    equations = st.text_area(
-        "Equations (one per line: equation | meaning) — re-checked when you save",
-        "\n".join(f"{e.get('equation', '')} | {e.get('meaning', '')}" for e in plan.get("equations", [])),
-        height=100,
+    equations = (
+        ""
+        if is_history
+        else st.text_area(
+            "Equations (one per line: equation | meaning) — re-checked when you save",
+            "\n".join(f"{e.get('equation', '')} | {e.get('meaning', '')}" for e in plan.get("equations", [])),
+            height=100,
+        )
     )
     if st.form_submit_button("💾 Save changes"):
         plan.update(
@@ -145,28 +186,116 @@ with content_tab, st.form(f"edit_{lesson.id}_{lesson.version}"):
         st.success("Saved (equations re-checked).")
         st.rerun()
 
-with chem_tab:
-    render_equations(plan)
-    st.divider()
-    render_molecules(plan, show_3d=st.toggle("Show 3D (rotatable)", value=True))
-
-with sim_tab:
-    sim = plan.get("simulation", {})
-    st.markdown(f"**{sim.get('title', 'Simulation')}** — {sim.get('brief', '')}")
-    render_simulation(lesson)
-    instruction = st.text_input(
-        "Change request (optional)", placeholder="e.g. make the beaker bigger and show the pH number larger"
-    )
-    if st.button("🔁 Regenerate simulation (≈ 2–4 ¢)"):
-        lessons.enqueue("simulation", lesson.id, options=instruction.strip())
-        st.toast("Simulation queued.")
-    with st.expander("Code (advanced)"):
-        code = st.text_area(
-            "p5.js sketch", lesson.simulation_js, height=300, key=f"code_{lesson.id}_{lesson.version}"
+if is_history:
+    with time_tab:
+        st.caption(
+            "Every date below was checked against your textbook pages; entries the AI could not prove were removed "
+            "(listed in the yellow warnings above). Step through it in class with Next ▶."
         )
-        if st.button("Save code and re-check"):
-            problems = lessons.save_simulation_code(lesson.id, code)
-            st.warning("; ".join(problems)) if problems else st.success("Code passed all checks.")
+        render_timeline(plan)
+    with map_tab:
+        unplaced = render_map(plan)
+        if unplaced:
+            st.markdown(
+                "**Not on the map yet** — add a hint (state or nearby city) or the position (lat, lon):"
+            )
+            with st.form(f"places_{lesson.id}_{lesson.version}"):
+                answers = {}
+                for item in unplaced:
+                    answers[item["name"]] = st.text_input(
+                        f"{item['name']} — {item['reason']}",
+                        placeholder="e.g. Jharkhand   or   near Dhanbad   or   23.65, 86.48",
+                        key=f"hint_{lesson.id}_{item['name']}",
+                    )
+                if st.form_submit_button("📍 Save and place again"):
+                    for place in plan.get("places", []):
+                        answer = answers.get(place.get("name"), "").strip()
+                        numbers = re.findall(r"-?\d+(?:\.\d+)?", answer)
+                        if len(numbers) == 2 and "," in answer:
+                            place["lat"], place["lon"] = float(numbers[0]), float(numbers[1])
+                        elif answer:
+                            place["near"] = re.sub(r"^near\s+", "", answer, flags=re.I)
+                    lessons.save_plan(lesson.id, plan)
+                    st.rerun()
+    with cause_tab:
+        st.caption(
+            "Written by the AI from the cited pages — read them once before teaching (pages are shown)."
+        )
+        render_cause_effect(plan)
+    with people_tab:
+        figures = lesson_figures(lesson.document_id, plan, service.engine)
+        render_people(plan, figures)
+        st.divider()
+        st.markdown("**Pictures from your textbook** (with their printed captions)")
+        render_figures(figures)
+
+if not is_history:  # science lessons: chemistry, 3D scenes, simulation
+    with chem_tab:
+        render_equations(plan)
+        st.divider()
+        m1, m2 = st.columns(2)
+        show_3d = m1.toggle("Show 3D (rotatable)", value=True)
+        atom_labels = m2.toggle("Atom labels with charges (e.g. Cu²⁺, O⁻)", value=True)
+        render_molecules(plan, show_3d=show_3d, show_atom_labels=atom_labels)
+
+    with scenes_tab:
+        st.caption(
+            "Electrons and atoms move step by step: ionic bonds (electron transfer), covalent bonds (shared pairs) and "
+            "reactions (atoms change partners). Computed from the checked molecule table and balanced equations — no AI, "
+            "no cost. These scenes appear in Teach Mode after the molecules."
+        )
+        shown, reasons = available_scenes(plan)
+        if shown:
+            choice = st.selectbox("Show", shown, key=f"scene_{lesson.id}")
+            render_scene(choice)
+        else:
+            st.info(
+                "None of this lesson's molecules or equations can be shown as a 3D scene yet — add one below."
+            )
+        if reasons:
+            with st.expander(f"Not shown ({len(reasons)}) and why"):
+                for source, reason in reasons.items():
+                    st.markdown(f"- **{source}** — {reason}")
+        extras = list(plan.get("scenes_3d", []))
+        with st.form(f"scenes_{lesson.id}_{lesson.version}"):
+            added = st.text_input(
+                "Add a formula or an equation for this lesson",
+                placeholder="e.g. MgO   or   2H₂O → 2H₂ + O₂   (the 3D Chemistry Lab page shows what works)",
+            )
+            if st.form_submit_button("➕ Add") and added.strip():
+                _, problem = scene_or_reason(added.strip())
+                if problem:
+                    st.error(f"Cannot show **{added.strip()}**: {problem}")
+                else:
+                    plan["scenes_3d"] = extras + [added.strip()]
+                    lessons.save_plan(lesson.id, plan)
+                    st.rerun()
+        for extra in extras:
+            c1, c2 = st.columns([5, 1])
+            c1.caption(f"Added by you: {extra}")
+            if c2.button("Remove", key=f"rm_{lesson.id}_{extra}"):
+                plan["scenes_3d"] = [x for x in extras if x != extra]
+                lessons.save_plan(lesson.id, plan)
+                st.rerun()
+
+    with sim_tab:
+        sim = plan.get("simulation", {})
+        st.markdown(f"**{sim.get('title', 'Simulation')}** — {sim.get('brief', '')}")
+        render_simulation(lesson)
+        instruction = st.text_input(
+            "Change request (optional)",
+            placeholder="e.g. make the beaker bigger and show the pH number larger",
+        )
+        if st.button("🔁 Regenerate simulation (≈ 2–4 ¢)"):
+            lessons.enqueue("simulation", lesson.id, options=instruction.strip())
+            st.toast("Simulation queued.")
+        with st.expander("Code (advanced)"):
+            code = st.text_area(
+                "p5.js sketch", lesson.simulation_js, height=300, key=f"code_{lesson.id}_{lesson.version}"
+            )
+            if st.button("Save code and re-check"):
+                problems = lessons.save_simulation_code(lesson.id, code)
+                st.warning("; ".join(problems)) if problems else st.success("Code passed all checks.")
 
 with src_tab:
     for source in plan.get("sources", []):

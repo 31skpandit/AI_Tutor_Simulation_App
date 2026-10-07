@@ -1,4 +1,4 @@
-// Builds docs/AI_Teaching_Studio_Project_Blueprint_v1.5.docx
+// Builds docs/AI_Teaching_Studio_Project_Blueprint_v1.9.docx
 const fs = require('fs');
 const path = require('path');
 const {
@@ -9,7 +9,7 @@ const {
 
 const ROOT = process.argv[2];
 const DIAG = path.join(ROOT, 'docs', 'diagrams');
-const OUTFILE = path.join(ROOT, 'docs', 'AI_Teaching_Studio_Project_Blueprint_v1.5.docx');
+const OUTFILE = path.join(ROOT, 'docs', 'AI_Teaching_Studio_Project_Blueprint_v1.9.docx');
 
 const BLUE = '1F3A93', INK = '1F2937', MUTE = '4B5563';
 const PORTRAIT_W = 9026, LANDSCAPE_W = 14678;
@@ -93,7 +93,7 @@ function figure(name, maxW, maxH, caption) {
 }
 const pb = () => new Paragraph({ children: [new PageBreak()] });
 
-const header = () => ({ default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'AI Teaching Studio — Project Blueprint v1.5', size: 16, color: MUTE })] })] }) });
+const header = () => ({ default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'AI Teaching Studio — Project Blueprint v1.9', size: 16, color: MUTE })] })] }) });
 const footer = () => ({ default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Page ', size: 16, color: MUTE }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: MUTE })] })] }) });
 const portrait = children => ({ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } }, headers: header(), footers: footer(), children });
 const landscape = children => ({ properties: { page: { size: { width: 11906, height: 16838, orientation: PageOrientation.LANDSCAPE }, margin: { top: 1080, bottom: 1080, left: 1080, right: 1080 } } }, headers: header(), footers: footer(), children });
@@ -106,7 +106,7 @@ sections.push(portrait([
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'AI Teaching Studio', bold: true, size: 64, color: BLUE })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 200, after: 600 }, children: [new TextRun({ text: 'Project Blueprint: Requirements, Architecture, Workflows & Execution Plan', size: 30, color: INK })] }),
-  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Version 1.5 — Phase 2 built', size: 24, color: MUTE })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Version 1.9 — history lessons: timeline, map, causes & effects', size: 24, color: MUTE })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '3 October 2026', size: 24, color: MUTE })] }),
   new Paragraph({ spacing: { before: 1600 }, children: [] }),
   ...table(['Item', 'Detail'], [
@@ -121,7 +121,11 @@ sections.push(portrait([
   ...table(['Version', 'Date', 'Change', 'Status'], [
     ['1.0', '03-Oct-2026', 'First complete blueprint: requirements from owner answers, architecture, model strategy, workflows, phased plan', 'Superseded'],
     ['1.1', '03-Oct-2026', 'Owner security guidelines after the March 2026 LiteLLM supply-chain incident: new Section 14 (pinning, hash-locked installs, API-key isolation, egress control); updates to stack, setup steps, NFR-06, Phase 0, risks and decisions D10–D11', 'Superseded'],
-    ['1.5', '05-Oct-2026', 'Phase 2 built (§8.6): lesson planner, equation checker, molecules 2D/3D, checked AI simulations, Lesson Studio, Teach Mode; 3 pilot lessons generated; stack table and pinned versions (rdkit, p5.js, 3Dmol.js), data model, folder structure, progress, decisions D24–D27 and open items updated. Learning log docs/Claude Interactions.docx started', 'Current'],
+    ['1.9', '07-Oct-2026', 'History lessons (§8.6, D34–D37): two-column reading order, whole-chapter lesson writing without exercise pages, timeline/period/people/place/cause-effect extraction checked against the textbook, offline map of India (Natural Earth India view + GeoNames), textbook pictures with captions, history player; tested end to end on Class 9 History Ch. 4', 'Current'],
+    ['1.8', '07-Oct-2026', '3D Chemistry Lab (electron transfer, electron sharing, atoms rearranging — computed, no AI), simulations tested in a real browser + picture review, p5.js 2 fix, ready-made experiment setups, review of free image/3D AI models (§8.6, D30–D33); all 5 simulations regenerated', 'Superseded'],
+    ['1.7', '05-Oct-2026', 'Labelled 3D molecules (atom symbols + charges, ion tags, legend, charge note) and fix for ions hidden inside each other (§8.6, D29)', 'Superseded'],
+    ['1.6', '05-Oct-2026', 'Lab kit for simulations after the owner’s review (overlapping labels, no stir animation): §8.6 extended, decision D28, folder structure; all 5 lesson simulations regenerated', 'Superseded'],
+    ['1.5', '05-Oct-2026', 'Phase 2 built (§8.6): lesson planner, equation checker, molecules 2D/3D, checked AI simulations, Lesson Studio, Teach Mode; 3 pilot lessons generated; stack table and pinned versions (rdkit, p5.js, 3Dmol.js), data model, folder structure, progress, decisions D24–D27 and open items updated. Learning log docs/Claude Interactions.docx started', 'Superseded'],
     ['1.4', '04-Oct-2026', 'Phase 1 complete (owner reviewed the chapter). Improvements built and measured (§8.5): review preview & lossless table repair, OCR prompt clean-up, optional cloud re-read (gpt-5.4-mini, benchmarked), page summaries & table/figure descriptions as search aids only, answer-model switch, semantic answer cache (calibrated), stale-index bug fixed, schema migration; routing table, data model, folder structure, progress, decisions D19–D23 and open items updated', 'Superseded'],
     ['1.3', '04-Oct-2026', 'Phase 1 built and tested on the owner’s chapter: new §8.4 (ingestion & tutor as built, with measurements); 3-level de-duplication; OCR model changed to qwen3-vl:2b-instruct (§7.2, D16); vector store SQLite + NumPy (D15, for approval); new packages pymupdf, python-docx, pillow, numpy (§5.1); data model, folder structure, progress tracker, decisions D15–D18 and open items updated; diagrams updated', 'Superseded'],
     ['1.2', '03-Oct-2026', 'Owner approved the plan. Phase 0 built and verified: exact installed versions (§5.1); local text model changed to qwen3:4b-instruct (§7.2); OpenAI models and prices fixed after cross-checking two sources (§7.3); real setup steps (§6.2) and configuration (§7.5); actual folder structure (§11); progress tracker (§12.2); LiteLLM hardening details (§14.6); decisions D12–D14', 'Superseded'],
@@ -476,6 +480,49 @@ sections.push(portrait([
     ['Water of Crystallisation', '4 sections (page 12 activity with blue vitriol and alum); CuSO₄·5H₂O → CuSO₄ + 5H₂O — balanced', 'Blue crystals turn white on heating and regain colour with water (matches page 12)', '$0.022 · 21 s'],
   ], [1.6, 2.6, 2.6, 1.2]),
   P('All 3 simulations passed every check on the first attempt (0 automatic fix rounds). Molecules used by the lessons that were missing from the local table (ferrous sulphate, washing soda, alum) were added after review.'),
+  H3('Lab kit (added 05-Oct-2026 after the owner’s review)'),
+  P('**Owner’s finding:** in a Neutralization simulation, labels overlapped (“Solution details” over “Dropper with dilute NaOH”, “Glass rod” over “Stirs: 0”, scale lines through “25 ml”) and *Stir* only increased a counter — nothing moved. **Root cause:** the AI placed every text by absolute pixel position without seeing the result; the checks covered safety and syntax but not layout or animation.'),
+  ...table(['Fix', 'What it guarantees'], [
+    ['Hand-written lab kit `assets/labkit.js` (owns setup/draw)', 'Fixed areas: title band, experiment area (drawing is clipped to it), readings panel (lines stacked, wrapped and shrunk to fit), Observe band. The AI cannot place text in the panel or bands.'],
+    ['`labLabel()` — the only way to write text in the experiment', 'A label that would overlap another is moved to the nearest free spot inside the area and linked with a leader line; a white background stops lines crossing text. Tested in Node.js: 12 labels requested at the same spot → 0 overlaps, 0 outside the area.'],
+    ['Animation timers `labStart / labProgress / labActive / labEase`', 'Each control starts a timed animation (e.g. Stir → rod circles and liquid swirls for 1.8 s).'],
+    ['New automatic rules (rejected code is sent back to the AI)', 'No direct text(); no own setup/draw/createCanvas; must have drawApparatus and panel; if there are controls, labStart + labProgress/labActive must be used. Older stand-alone simulations keep working.'],
+    ['Runtime errors shown, not hidden', 'If the AI code fails while running, a red message appears inside the experiment area instead of a blank canvas.'],
+  ], [2.6, 5.4]),
+  H3('Labelled molecules (added 05-Oct-2026 after the owner’s request)'),
+  P('**Owner’s request:** show atom names and charges in the 3D diagrams for easier teaching. **Bug found at the same time (in the owner’s screenshot):** the Cu²⁺ ion of copper sulphate was invisible — RDKit places every separate ion around the same centre, so Cu ended up 0.04 Å from S, hidden inside it (all ionic compounds were affected); captions under the viewers were also cut off.'),
+  ...table(['Change', 'Result'], [
+    ['Ions laid out side by side with a 2.5 Å gap', 'Cu²⁺ is now 3.44 Å from the nearest atom; every ion of NaOH, Na₂CO₃, alum etc. is visible (automatic test).'],
+    ['Atom labels: symbol + formal charge on every atom', 'e.g. Cu²⁺, S, O, O⁻, Na⁺, H — can be switched off in Lesson Studio and Teach Mode.'],
+    ['Ion labels from a hand-checked list', 'Blue tag above each ion with school notation (Cu²⁺, SO₄²⁻, CO₃²⁻, HCO₃⁻, Al³⁺ …), not computed formulas.'],
+    ['Legend and teaching note under each model', 'Full element names (Cu = Copper, S = Sulphur …); for charged polyatomic ions: “the 2⁻ charge belongs to the whole SO₄²⁻ ion; the marked atoms show one common way to draw it”.'],
+    ['Caption moved outside the 3D frame; no auto-spin', 'Captions are never cut; labels stay readable (rotate by dragging).'],
+  ], [2.8, 5.2]),
+  P('All 5 lessons’ simulations were regenerated with the lab kit: every one passed all checks on the first attempt (≈ $0.015 each). Final visual judgement remains the teacher’s preview in Lesson Studio — the kit guarantees non-overlapping labels and the presence of animations, not the beauty of every scene.'),
+  H3('3D Chemistry Lab and browser-tested simulations (added 07-Oct-2026)'),
+  P('**Owner’s requests:** students should *see* atoms giving, taking and sharing electrons (valency) during reactions in 3D; experiments may stay 2D; “few of the simulations not working” (screenshot: *Electrolysis of Water* showed “Cannot read properties of undefined (reading ‘option’)”); and an evaluation of free AI models (Gemini, Stable Diffusion/FLUX, Stable Video 3D, GPT-4o images, Leonardo AI).'),
+  P('**Root cause of the broken simulation:** in p5.js 2, `select.option()` returns nothing, so the AI’s chained `createSelect().option(a).option(b)` crashed. `node --check` only reads code; it cannot see errors that appear when code runs. Screenshots then showed further, purely visual faults that no check could see: liquid outside a beaker, an upside-down tripod, blue vitriol drawn white before heating, a battery inside the water, electrodes through the closed tops of gas tubes.'),
+  ...table(['Change', 'What it guarantees'], [
+    ['Run-time check in a hidden Edge/Chrome (`browser_check.py`)', 'The exact sealed page is opened; every button, list choice, slider and box is used while frames are drawn at screen speed (a hidden browser draws none by itself — measured). Errors and controls that change nothing are sent back to the AI.'],
+    ['Picture review (`simulation_review`, gpt-5.4-mini vision, ≈ 1–2 ¢)', 'Pictures at the start and DURING / AFTER each control are checked against the textbook facts (apparatus, colours, labels). Remaining notes are shown to the teacher; they do not hide the simulation.'],
+    ['p5.js 2 compatibility + control helpers', 'Chained element calls work again (fixes old lessons without regenerating); `labButton/labSelect/labSlider/labCheckbox` are required for new code.'],
+    ['Hand-drawn apparatus and complete setups', 'Beaker, test tube (also inverted for gas), burner, tripod, dish, dropper, glass rod, electrodes, battery, wires, bubbles, pH paper, thermometer; complete setups for electrolysis, heating, conductivity and neutralisation (indicator colours from school charts). Each checked by eye in screenshots.'],
+    ['3D Chemistry Lab (`reactions.py` + `assets/chem3d.js`)', 'Ionic bonds (electron transfer, ions, attraction), covalent bonds (shared pairs, full shells) and reactions (bonds break, atoms move, atom count and charge stay equal). Electrons keep their atom’s colour. Computed from Z (2, 8, 8, 2), the reviewed molecule table and balanced equations — no AI, no cost; unsupported cases get a reason. Shown in Lesson Studio, Teach Mode and the new 3D Chemistry Lab page.'],
+  ], [2.6, 5.4]),
+  P('**Free AI image / 3D models — evaluated, not adopted for chemistry (D33):** image generators (Gemini, GPT-4o images, FLUX, Stable Diffusion, Leonardo) draw *pictures*; they regularly get electron counts, charges and text labels wrong and are not interactive, so they cannot teach valency precisely. Stable Video 3D needs far more graphics memory than the laptop’s 4 GB (one user measured ≈ 19.5 GB peak on a 24 GB card); FLUX needs a larger card too; Stable Diffusion 1.5 runs on 4 GB but slowly. They remain an option later for decorative, clearly-marked illustrations only.'),
+  H3('History lessons (added 07-Oct-2026, tested end to end on Class 9 History Ch. 4 “Economic Development”)'),
+  P('**Owner’s request:** apps for history, geography, physics and maths chapters; first test with a history chapter, checked end to end. **Design:** the AI only extracts facts from the reviewed chapter; every fact is checked against the textbook text; all pictures are drawn by hand-written code or taken from the textbook itself.'),
+  ...table(['Part', 'What it does / what was measured'], [
+    ['Column-aware reading (`extract.py`)', 'Two-column pages read left column then right, line by line; “Do you know?” boxes kept whole; paragraphs from indents. Measured: plain PDF text put page 18’s right column first.'],
+    ['Whole chapter, no exercises (`planner.py`, `store.document_text_hits`)', 'A topic search found only 3 of 8 pages; a chapter (≤ 60 000 characters) is now given complete. Exercise passages (blanks, deliberately wrong pairs) are removed to the end of their page.'],
+    ['History lesson plan', 'Sections + timeline, periods, people, places (with a nearby-city hint), causes → effects. ≈ 2.5 ¢ with gpt-5.4-mini.'],
+    ['Fact checks (`history.verify`)', 'Date numbers + month + event words must appear together in the cited text; names must appear; duplicates merged; ranges become periods. Unproven items are removed and listed as warnings (first run: a real year paired with the wrong event).'],
+    ['Map (`geo.py`, `assets/geo/`)', 'Natural Earth India point-of-view boundaries + GeoNames (563 000 places), offline, SHA-256 checked. Placed only when unambiguous; first runs chose Shirdi for “Shivdi” and villages for “Paral”/“Damodar” — rules tightened (state hints only for real towns, spelling matches only near a named city or for big cities). Result on the chapter: 11 of 16 placed, none wrong; 4 shown with reasons for the teacher’s hint.'],
+    ['Textbook pictures (`figures.py`)', 'The 4 captioned pictures (Bhilai Steel Plant, Textile Mill, P. V. Narasimha Rao, Dr Manmohan Singh) reused; decorations skipped; portraits matched to people.'],
+    ['Player (`assets/historykit.js`)', 'Timeline (events revealed in order, plans as numbered bars + legend, empty decades squeezed with ≈), map (labels never overlap), causes → event → effects; Next/Back/Play/All, keys.'],
+  ], [2.6, 5.4]),
+  P('**End-to-end result (on a copy of the data, so the owner’s own review stays untouched):** 8 pages extracted from the text layer (0 OCR, 0 ¢), indexed in ≈ 2 min (local models), lesson in ≈ 25 s: 4 sections (pages 1–7), 11 verified timeline events (1882 → 1995), 9 plans, 10 people, 3 cause-effect charts; Lesson Studio (6 tabs) and Teach Mode (13 slides) rendered without errors; the AI Tutor answered 3 chapter questions with page references and refused an off-topic one. Known limit: the free local model’s long answers (e.g. causes of the strike) are weaker — the Cloud answer model is better for those.'),
+  P('All 5 lesson simulations were regenerated through the new pipeline (≈ $1.2 in total including the measurement rounds; $1.43 spent this month of the $5 cap) and pass every check; each was also checked by eye in the checker’s pictures.'),
 ]));
 
 // 9-12
@@ -522,11 +569,14 @@ sections.push(portrait([
     '│   ├── tools/      verify_models.py',
     '│   └── lessons/    planner.py · chemistry.py · molecules.py',
     '│                   simulation.py · viewers.py · service.py',
-    '├── assets/vendor/  p5.min.js · 3Dmol-min.js · manifest.json (SHA-256)',
-    '├── ui/             Home.py · common.py · pages/1_…6_*.py',
+    '│                   browser_check.py · reactions.py (3D scenes)',
+    '│                   history.py · geo.py · figures.py (history lessons)',
+    '├── assets/        labkit.js · labkit_example.js · chem3d.js · historykit.js',
+    '│                   geo/ (map + places, SHA-256) · vendor/ (p5, 3Dmol, SHA-256)',
+    '├── ui/             Home.py · common.py · pages/1_…7_*.py',
     '├── config/         models.yaml',
     '├── tests/          automated tests (offline, no cost)',
-    '├── scripts/        audit.ps1 (vulnerability audit)',
+    '├── scripts/        audit.ps1 (vulnerability audit) · build_geo.py (offline map data)',
     '├── docs/           blueprint .docx · diagrams/ · _source/ · archive/',
     '├── .streamlit/     config.toml (localhost only, no usage stats)',
     '├── source/         NOT in Git: your textbook files',
@@ -559,7 +609,7 @@ sections.push(portrait([
   ...table(['Phase', 'Status', 'Evidence / remaining'], [
     ['0 — Setup', '**Complete** (03-Oct-2026; OpenAI key verified 04-Oct-2026)', 'Done: tools installed; `uv sync --locked` OK (110 packages, SHA-256 verified); `pip-audit` clean; 6/6 security checks OK; 48/48 automated tests pass (router, budget, cache, fallback, premium approval, allow-list refusal, key redaction, no network on LiteLLM import, all pages render); local test prompt answered end-to-end and logged at $0, repeat served from cache; app listens on 127.0.0.1 only. OpenAI key stored in Credential Manager by the owner; `verify_models`: all configured models available, prices match; a paid call (gpt-5.4-mini) logged at $0.002.'],
     ['1 — Syllabus & AI Tutor', '**Complete** (04-Oct-2026) incl. improvements (§8.5)', 'Done: any PDF / image / DOCX / TXT from `source/` or upload; 3-level de-duplication; resumable background jobs; review screen with table preview; SQLite + NumPy search with page summaries and table/figure descriptions; optional cloud re-read; tutor with citations, filters, Hindi/Marathi on request, local/cloud answer switch and safe answer reuse. The owner reviewed all 17 pages and made them searchable. Retrieval 11/11, out-of-scope 6/6. 109 automated tests pass; `pip-audit` clean.'],
-    ['2 — Lessons & Simulations', '**Built** (04/05-Oct-2026); owner review of the 3 pilot lessons pending', 'Done: lesson planner from reviewed passages with page citations; in-house equation checker (atoms + charge) with one automatic correction round; molecules in 2D/3D (RDKit + offline 3Dmol.js); AI-written p5.js simulations with safety/structure/syntax checks and up to 2 automatic fixes, shown in a sealed frame; Lesson Studio (edit, regenerate, approve) and Teach Mode (slides). Pilot lessons generated from Chapter 5: Neutralization, Electrolysis of Water, Water of Crystallisation — all equations balanced, all simulations passed on the first try, ≈ $0.06 in total. 160 automated tests pass; `pip-audit` clean. **Remaining (owner):** review, adjust and approve the 3 lessons; present one in class.'],
+    ['2 — Lessons & Simulations', '**Built** (04/05-Oct-2026); owner review of the 3 pilot lessons pending', 'Done: lesson planner from reviewed passages with page citations; in-house equation checker (atoms + charge) with one automatic correction round; molecules in 2D/3D (RDKit + offline 3Dmol.js); AI-written p5.js simulations with safety/structure/syntax checks and up to 2 automatic fixes, shown in a sealed frame; Lesson Studio (edit, regenerate, approve) and Teach Mode (slides). Pilot lessons generated from Chapter 5: Neutralization, Electrolysis of Water, Water of Crystallisation — all equations balanced, all simulations passed on the first try, ≈ $0.06 in total. 175 automated tests pass; `pip-audit` clean. Simulations rebuilt on the lab kit (05-Oct). **Remaining (owner):** review, adjust and approve the lessons; present one in class.'],
     ['3 — Videos & Narration', 'Planned', '—'],
     ['4 — Quiz & Polish', 'Planned', '—'],
     ['5 — Students & Cloud', 'Later', 'Decided after Phase 4'],
@@ -660,6 +710,16 @@ sections.push(portrait([
     ['D25', 'Simulation safety: model writes only the p5.js sketch; rules (no network/storage/eval/parent access), structure checks and `node --check` syntax check, ≤ 2 automatic fix rounds; page served with a no-network Content-Security-Policy in a separate frame; teacher previews before approving', 'Decided in Phase 2', '04-Oct-2026'],
     ['D26', 'Pilot topics: Neutralization reaction, Electrolysis of water, Water of crystallisation (Chapter 5)', 'Chosen by owner (“use the suggested 3”)', '04-Oct-2026'],
     ['D27', 'Background workers only claim job kinds they support (an app started before an update failed two new jobs)', 'Decided (incident)', '04-Oct-2026'],
+    ['D29', 'Molecule models: separate ions laid out side by side; atom labels (symbol + charge) and hand-checked ion labels; element legend and charge note', 'Requested by owner; Cu²⁺ visibility bug fixed', '05-Oct-2026'],
+    ['D30', 'Every new simulation is run in a hidden Edge/Chrome (all controls used) and its pictures are reviewed by a vision model before the teacher sees it', 'p5.js 2 crash found by owner; visual faults found in screenshots', '07-Oct-2026'],
+    ['D31', 'Lab kit provides hand-drawn apparatus and complete setups (electrolysis, heating, conductivity, neutralisation); the AI places and switches them', 'Measured: AI-drawn glassware was wrong in several ways', '07-Oct-2026'],
+    ['D32', '3D bonding and reaction scenes are computed (shells, table, balanced equation) and drawn by a hand-written player — no AI, no new library', 'Owner’s request: see valency electrons move', '07-Oct-2026'],
+    ['D34', 'Lessons get a subject profile (history / science); history lessons read the whole chapter (exercise passages removed) and extract timeline, periods, people, places and causes-effects', 'Measured: topic search missed 5 of 8 pages; exercise page has deliberately wrong pairs', '07-Oct-2026'],
+    ['D35', 'Every history fact shown is checked against the cited textbook text (date numbers + month + event words together; names present); unproven items are removed and listed', 'AI paired a real year with the wrong event in the first test', '07-Oct-2026'],
+    ['D36', 'Maps offline: Natural Earth India point-of-view boundaries (public domain) + GeoNames places (CC BY 4.0); a place is drawn only when unambiguous (major town, or within 40 km of a named city), else the teacher gives a hint', 'Wrong villages were chosen with state-only hints in testing', '07-Oct-2026'],
+    ['D37', 'Textbook PDFs read column-aware (line level); the textbook’s own captioned pictures are reused for slides and people cards', 'Owner’s two-column history chapter', '07-Oct-2026'],
+    ['D33', 'Free image/3D generators not used for chemistry diagrams (inaccurate electrons/labels, not interactive, too large for 4 GB); possible later for marked illustrations', 'Owner asked to evaluate', '07-Oct-2026'],
+    ['D28', 'Simulations run inside a hand-written lab kit that owns layout, labels (overlap-free) and animation timers; the AI only writes the experiment (`SIM`); layout/animation rules are checked automatically', 'Decided after owner’s review (overlapping labels, no stir animation)', '05-Oct-2026'],
   ], [0.5, 4.8, 1.6, 1.3]),
 
   H1('17. Open Items for the Owner'),
@@ -694,7 +754,7 @@ sections.push(portrait([
 // ---------- document ----------
 const doc = new Document({
   creator: 'Claude Code for Santosh',
-  title: 'AI Teaching Studio — Project Blueprint v1.5',
+  title: 'AI Teaching Studio — Project Blueprint v1.9',
   description: 'Requirements, architecture, workflows and execution plan',
   features: { updateFields: true },
   styles: {

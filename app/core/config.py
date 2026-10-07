@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     # ---- Phase 2: lessons ----
     # Minimum similarity for a textbook passage to be used as lesson evidence.
     lesson_min_relevance: float = 0.45
+    # Run every new simulation in a hidden (headless) Edge/Chrome and press all its controls before it is
+    # accepted — catches errors that only appear when the code runs. Skipped if no browser is found.
+    browser_check: bool = True
+    # Optional path to msedge.exe / chrome.exe when it is not in the usual Windows location.
+    browser_path: Path | None = None
 
     @property
     def db_path(self) -> Path:
