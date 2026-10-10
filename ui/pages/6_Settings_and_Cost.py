@@ -99,6 +99,10 @@ st.markdown(
 | Page summaries + table/figure descriptions when indexing (`ATS_ENRICH_PAGES`) | {settings.enrich_pages} |
 | Reuse answers to very similar questions (`ATS_SEMANTIC_CACHE`) | {settings.semantic_cache} |
 | Similarity needed to reuse an answer (`ATS_SEMANTIC_CACHE_MIN`) | {settings.semantic_cache_min} |
+| Autopilot: pages passing the automatic check become searchable without waiting (`ATS_AUTO_REVIEW_CLEAN`) | {settings.auto_review_clean} |
+| Autopilot: write the chapter's lesson automatically, as a draft (`ATS_AUTO_LESSON`) | {settings.auto_lesson} |
+| Real-life photos for lessons from Wikimedia Commons / Openverse, checked by the local vision model (`ATS_MEDIA_SEARCH`) | {settings.media_search} |
+| Photos kept per real-life example (`ATS_MEDIA_PER_EXAMPLE`) | {settings.media_per_example} |
 | Test every new simulation in a hidden browser (`ATS_BROWSER_CHECK`) | {settings.browser_check} |
 | Browser used for that test (`ATS_BROWSER_PATH`, empty = found automatically) | {find_browser() or "none found"} |
 """

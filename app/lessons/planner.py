@@ -8,7 +8,7 @@ import json
 import re
 from dataclasses import dataclass
 
-from app.lessons import history
+from app.lessons import history, maths
 from app.lessons.chemistry import check_equation
 from app.llm.router import LLMRouter
 from app.rag.store import Hit, SearchFilters, VectorStore
@@ -68,11 +68,18 @@ def gather_evidence(
     return original_passages(store, matched, vector, embed_model, count)
 
 
-def parse_plan(text: str) -> dict:
+def parse_json_object(text: str) -> dict:
     match = re.search(r"\{.*\}", text, re.S)
     if not match:
-        raise PlanningError("The model did not return a JSON lesson plan.")
-    plan = json.loads(match.group(0))
+        raise PlanningError("The model did not return a JSON object.")
+    value = json.loads(match.group(0))
+    if not isinstance(value, dict):
+        raise PlanningError("The model did not return a JSON object.")
+    return value
+
+
+def parse_plan(text: str) -> dict:
+    plan = parse_json_object(text)
     for key in ("title", "sections"):
         if not plan.get(key):
             raise PlanningError(f"The lesson plan has no '{key}'.")
@@ -80,8 +87,14 @@ def parse_plan(text: str) -> dict:
         plan.setdefault(key, [])
     for key in ("timeline", "periods", "people", "places", "cause_effect"):
         plan.setdefault(key, [])
+    plan.setdefault("concepts", [])
     plan.setdefault("simulation", {})
     return plan
+
+
+def lesson_profile(subject: str) -> str:
+    """Which lesson design a subject gets: 'maths', 'history' or 'science' (the default)."""
+    return "maths" if maths.profile_is_maths(subject) else history.profile(subject)
 
 
 def check_equations(plan: dict) -> list[dict]:
@@ -104,19 +117,24 @@ def plan_lesson(
     class_level: str = "",
     subject: str = "",
     min_relevance: float = MIN_RELEVANCE,
+    whole_chapter: bool = False,  # the lesson IS the chapter (autopilot): give the model the complete chapter
+    pages: tuple[int, int]
+    | None = None,  # the chapter's first and last page when a file holds several chapters
 ) -> PlanResult:
-    kind = history.profile(subject)
+    kind = lesson_profile(subject)
     count = HISTORY_EVIDENCE_PASSAGES if kind == "history" else EVIDENCE_PASSAGES
     evidence = []
-    if kind == "history" and filters and len(filters.document_ids) == 1:
+    if (kind == "history" or whole_chapter) and filters and len(filters.document_ids) == 1:
         # Measured on the owner's history chapter: searching for the topic 'Economic Development' found passages
         # from only 3 of 8 pages (bank nationalisation, the 1975 programme and the 1982 strike were missed). A
         # history lesson follows its whole chapter, so a chapter that fits is given complete, in page order.
         chapter = store.document_text_hits(filters.document_ids[0], router.config.tasks[EMBED_TASK].primary)
+        chapter = [h for h in chapter if not pages or pages[0] <= h.page_no <= pages[1]]
         if chapter and sum(len(h.text) for h in chapter) <= WHOLE_CHAPTER_MAX_CHARS:
             evidence = chapter
     if not evidence:
         evidence = gather_evidence(router, store, topic, filters, min_relevance, count)
+        evidence = [h for h in evidence if not pages or pages[0] <= h.page_no <= pages[1]]
     evidence = history.without_exercises(evidence)  # no quiz blanks / deliberately wrong pairs
     if not evidence:
         raise PlanningError(
@@ -124,9 +142,9 @@ def plan_lesson(
         )
     audience = " ".join(x for x in [f"Class {class_level}" if class_level else "", subject] if x) or "school"
     extracts = "\n\n".join(f"[{n}] ({hit.citation})\n{hit.text}" for n, hit in enumerate(evidence, start=1))
-    prompt = history.SYSTEM_PROMPT if kind == "history" else SYSTEM_PROMPT
+    prompt = {"history": history.SYSTEM_PROMPT, "maths": maths.SYSTEM_PROMPT}.get(kind, SYSTEM_PROMPT)
     messages = [
-        {"role": "system", "content": prompt.format(audience=audience)},
+        {"role": "system", "content": prompt.format(audience=audience, kinds=", ".join(maths.KINDS))},
         {"role": "user", "content": f"Lesson topic: {topic}\n\nTextbook extracts:\n\n{extracts}"},
     ]
     result = router.complete(PLAN_TASK, messages)
@@ -137,6 +155,9 @@ def plan_lesson(
 
     if kind == "history":  # dates, names and places must be in the cited textbook text
         warnings += history.verify(plan, {n: hit.text for n, hit in enumerate(evidence, start=1)})
+        plan["equations"], plan["molecules"], plan["simulation"] = [], [], {}
+    if kind == "maths":  # every answer that can be computed is re-computed; wrong AI answers are corrected
+        warnings += maths.verify(plan)
         plan["equations"], plan["molecules"], plan["simulation"] = [], [], {}
     bad = check_equations(plan)
     if bad:  # one correction round with the checker's exact findings
@@ -169,7 +190,7 @@ def plan_lesson(
         section["pages"] = sorted({pages[c] for c in cites})
         if not section["pages"]:
             warnings.append(f"Section '{section.get('heading', '?')}' cites no textbook extract — check it.")
-    for key in ("timeline", "periods", "people", "places", "cause_effect"):
+    for key in ("timeline", "periods", "people", "places", "cause_effect", "concepts"):
         for item in plan.get(key, []):
             item["pages"] = history.pages_of(item, pages)
     plan["sources"] = [

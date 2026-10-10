@@ -10,6 +10,7 @@ from lesson_views import (  # noqa: E402
     available_scenes,
     lesson_figures,
     lesson_profile,
+    render_concept,
     render_equations,
     render_figures,
     render_history_scene,
@@ -26,7 +27,7 @@ from app.lessons.service import LessonService  # noqa: E402
 
 page("Teach Mode", "🧑‍🏫")
 service, _ = ingestion_or_stop()
-lessons = LessonService(service.engine, service.router)
+lessons = LessonService(service.engine, service.router, settings=service.settings)
 
 # Larger text for the projector (pure CSS, no scripts).
 st.markdown(
@@ -50,6 +51,8 @@ plan = lessons.plan(lesson)
 
 slides: list[tuple[str, str]] = [("title", "")]
 slides += [("section", str(i)) for i in range(len(plan.get("sections", [])))]
+if lesson_profile(plan) == "maths":  # one slide per concept, with its Visualise toolbar
+    slides += [("concept", str(i)) for i in range(len(plan.get("concepts", [])))]
 if lesson_profile(plan) == "history":  # timeline → map → causes & effects → people → textbook pictures
     if plan.get("timeline") or plan.get("periods"):
         slides.append(("timeline", ""))
@@ -94,6 +97,15 @@ elif kind == "molecules":
     st.title("Molecules — rotate them!")
     render_molecules(
         plan, show_3d=True, height=420, show_atom_labels=st.session_state.get("teach_atom_labels", True)
+    )
+elif kind == "concept":
+    render_concept(
+        plan["concepts"][int(arg)],
+        int(arg),
+        lessons.photos,
+        service.settings.data_dir,
+        big=True,
+        key=f"t{lesson.id}",
     )
 elif kind == "timeline":
     st.title("Timeline")

@@ -54,7 +54,14 @@ def env(tmp_path, monkeypatch, make_router):
     source = tmp_path / "source"
     source.mkdir()
     monkeypatch.setattr(service_module, "PROJECT_ROOT", tmp_path)
-    settings = Settings(data_dir=tmp_path / "data", source_dir=source, require_review=True)
+    # Manual-review behaviour by default; the autopilot has its own tests (tests/test_autopilot.py).
+    settings = Settings(
+        data_dir=tmp_path / "data",
+        source_dir=source,
+        require_review=True,
+        auto_review_clean=False,
+        auto_lesson=False,
+    )
     backend = FakeBackend()
     router = make_router(backend)
     service = IngestionService(router.engine, router, settings)
@@ -298,7 +305,9 @@ def test_only_reviewed_pages_are_indexed(env):
     assert service.mark_all_reviewed(document.id) == 1
     service.index_document(document.id)
     assert service.documents()[0].status == "indexed"
-    assert service.page_counts(document.id) == {"done": 2, "failed": 0, "reviewed": 2, "indexed": 2}
+    assert service.page_counts(document.id) == {
+        "done": 2, "failed": 0, "reviewed": 2, "indexed": 2, "to_check": 0, "auto_reviewed": 0,
+    }  # fmt: skip
 
 
 def test_editing_a_page_replaces_its_passages(env):

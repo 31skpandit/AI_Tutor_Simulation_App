@@ -29,6 +29,20 @@ class Settings(BaseSettings):
     auto_ingest: bool = True
     # Pages must be reviewed by you before they are searchable (blueprint FR-02). Set false to index straight away.
     require_review: bool = True
+    # Autopilot: pages that pass the automatic quality check count as reviewed and become searchable at once;
+    # pages it flags wait for you. (Owner's choice, 08-Oct-2026.) false = review every page yourself.
+    auto_review_clean: bool = True
+    # Autopilot: after a chapter becomes searchable, create its lesson plan automatically (one per chapter,
+    # as a draft — you still approve it). Costs about 2–3 ¢ (history) or 5–15 ¢ (science, with simulation).
+    auto_lesson: bool = True
+    # Real photos for real-life examples from free sources (Wikimedia Commons, Wikidata, Openverse); each one is
+    # checked by the local vision model and stored offline with its licence and author. Needs internet to find.
+    media_search: bool = True
+    media_per_example: int = 2  # photos kept per real-life example
+    # Wikimedia requires a User-Agent with a way to contact the tool's owner (project page, not an email).
+    media_user_agent: str = (
+        "AITeachingStudio/1.0 (https://github.com/31skpandit/AI_Tutor_Simulation_App; classroom use) httpx"
+    )
     # A PDF page with at least this many words in its text layer is read directly; otherwise it is OCR'd.
     pdf_text_min_words: int = 25
     # Longest side (pixels) of page images sent to the OCR model. Larger = slower, more GPU memory.

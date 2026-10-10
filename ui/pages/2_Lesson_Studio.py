@@ -14,6 +14,7 @@ from lesson_views import (  # noqa: E402
     lesson_figures,
     lesson_profile,
     render_cause_effect,
+    render_concept,
     render_equations,
     render_figures,
     render_map,
@@ -26,7 +27,7 @@ from lesson_views import (  # noqa: E402
 )
 
 from app.jobs.runner import queue_summary  # noqa: E402
-from app.lessons.service import LessonService  # noqa: E402
+from app.lessons.service import LessonService, photo_queries  # noqa: E402
 
 page("Lesson Studio", "🛠️")
 st.title("🛠️ Lesson Studio")
@@ -37,7 +38,9 @@ st.caption(
     "an automatic picture check before you see them. 3D bonding & reaction scenes are computed without AI."
 )
 service, worker = ingestion_or_stop()
-lessons = LessonService(service.engine, service.router, service.settings.lesson_min_relevance)
+lessons = LessonService(
+    service.engine, service.router, service.settings.lesson_min_relevance, service.settings
+)
 STATUS = {"generating": "⏳ writing", "draft": "📝 draft", "approved": "✅ approved", "failed": "❌ failed"}
 PILOT_TOPICS = ["Neutralization reaction", "Electrolysis of water", "Water of crystallisation"]
 
@@ -120,9 +123,27 @@ st.caption(
 )
 for warning in warnings:
     st.warning(warning)
+newer_pages = lessons.pages_added_after(lesson)
+if newer_pages:
+    n1, n2 = st.columns([4, 1])
+    n1.info(
+        f"Textbook page(s) {', '.join(map(str, newer_pages))} became searchable after this lesson was written "
+        "(e.g. pages you reviewed later). Rebuild the lesson to include them — your edits to this version are "
+        "replaced."
+    )
+    if n2.button("🔁 Rebuild lesson (≈ 2–3 ¢)"):
+        lessons.enqueue("lesson_plan", lesson.id)
+        st.toast("Lesson queued — it is rewritten from the whole chapter in about a minute.")
 
 is_history = lesson_profile(plan) == "history"
+is_maths = lesson_profile(plan) == "maths"
 if (
+    is_maths
+):  # maths lessons: concepts with checked examples, real-life stories and photos, 2D and 3D pictures
+    content_tab, concepts_tab, src_tab = st.tabs(
+        ["📄 Content", "🧮 Concepts & visuals", "📚 Textbook sources"]
+    )
+elif (
     is_history
 ):  # history / social-science lessons: timeline, map, causes & effects, people and textbook pictures
     content_tab, time_tab, map_tab, cause_tab, people_tab, src_tab = st.tabs(
@@ -160,7 +181,7 @@ with content_tab, st.form(f"edit_{lesson.id}_{lesson.version}"):
     key_points = st.text_area("Key points (one per line)", "\n".join(plan.get("key_points", [])), height=120)
     equations = (
         ""
-        if is_history
+        if is_history or is_maths
         else st.text_area(
             "Equations (one per line: equation | meaning) — re-checked when you save",
             "\n".join(f"{e.get('equation', '')} | {e.get('meaning', '')}" for e in plan.get("equations", [])),
@@ -229,7 +250,45 @@ if is_history:
         st.markdown("**Pictures from your textbook** (with their printed captions)")
         render_figures(figures)
 
-if not is_history:  # science lessons: chemistry, 3D scenes, simulation
+if is_maths:
+    with concepts_tab:
+        st.caption(
+            "Every answer below was re-computed by the app (wrong AI answers are corrected and listed in the warnings). "
+            "The 2D and 3D pictures are drawn from those computed numbers — no AI drawing, no cost. Real-life photos "
+            "come from Wikimedia Commons / Openverse (free licences only, credit shown) and are checked by the local "
+            "vision model before you see them."
+        )
+        waiting = photo_queries(plan)
+        p1, p2 = st.columns([3, 1])
+        if waiting:
+            p1.info(f"{len(waiting)} real-life example(s) still need a photo.")
+        if p2.button(
+            "🔎 Find photos now", disabled=not waiting, help="Free: Wikimedia + the local vision model"
+        ):
+            lessons.enqueue("media", lesson.id)
+            st.toast("Looking for photos — they appear here in a minute or two.")
+        concepts = plan.get("concepts", [])
+        if not concepts:
+            st.info("This lesson has no concepts — rebuild it to get them.")
+        for index, concept in enumerate(concepts):
+            with st.container(border=True):
+                render_concept(
+                    concept,
+                    index,
+                    lessons.photos,
+                    service.settings.data_dir,
+                    key=f"s{lesson.id}",
+                    on_reject=lambda asset_id: lessons.reject_photo(lesson.id, asset_id),
+                )
+                if st.button(
+                    "➕ More real-life examples (≈ 0.2 ¢)",
+                    key=f"more_{lesson.id}_{index}",
+                    help="Two new everyday examples for this concept, then photos for them",
+                ):
+                    lessons.enqueue("real_life", lesson.id, options=concept.get("name", ""))
+                    st.toast("Queued — the new examples appear here in about a minute.")
+
+if not is_history and not is_maths:  # science lessons: chemistry, 3D scenes, simulation
     with chem_tab:
         render_equations(plan)
         st.divider()

@@ -176,6 +176,46 @@ def history_html(scene: dict, height: int = 600, start_step: int = 0, big: bool 
     return _page(body, [setup, HISTORYKIT.read_text(encoding="utf-8")], _HISTORY_STYLE)
 
 
+MATHKIT = PROJECT_ROOT / "assets" / "mathkit.js"
+
+_MATH_STYLE = """<style>
+#wrap{display:flex;flex-direction:column;gap:6px;padding:4px 6px}
+#title{font-weight:700;font-size:18px}
+#mk{width:100%;border:1px solid #e5e7eb;border-radius:10px;background:#fff;touch-action:none}
+#mk g,#mk text{transition:opacity .4s}
+#caption{min-height:44px;line-height:1.45;background:#f8fafc;border-left:4px solid #16a34a;padding:6px 10px;border-radius:6px}
+#stepname{color:#14532d}
+#bar{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+#bar button{font-size:14px;margin:0;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}
+#bar button:disabled{opacity:.45;cursor:default}
+#note{font-size:12px;color:#64748b}
+</style>"""
+
+
+def math_html(scene: dict, height: int = 560, start_step: int = 0, big: bool = False) -> str:
+    """Maths player for a scene from app/lessons/maths.visuals_for (factor tree, Venn, balance, angles, 3D objects …).
+    Every number in the scene was computed by the app; the page only draws it (no-network page)."""
+    svg_h = max(240, height - 150)
+    hint = (
+        "drag the picture to turn it · move the slider"
+        if scene.get("type") == "angle3d"
+        else "keys: ← → and Space"
+    )
+    if scene.get("type") == "angle":
+        hint = "drag the green handle · " + hint
+    body = (
+        "<div id='wrap'><div id='title'></div>"
+        f"<svg id='mk' style='height:{svg_h}px' preserveAspectRatio='xMidYMid meet'></svg>"
+        f"<div id='caption' style='font-size:{21 if big else 16}px'><b id='stepname'></b><span id='steptext'></span></div>"
+        "<div id='bar'><button id='restart' title='Back to the start'>⏮</button><button id='back'>◀ Back</button>"
+        "<button id='play'>▶ Play</button><button id='next'>Next ▶</button></div>"
+        f"<div id='note'>{_escape(hint)}</div></div>"
+    )
+    data = json.dumps(scene, ensure_ascii=False).replace("</", "<\\/")
+    setup = f"window.MK_SCENE={data};window.MK_START={int(start_step)};"
+    return _page(body, [setup, MATHKIT.read_text(encoding="utf-8")], _MATH_STYLE)
+
+
 def _escape(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 

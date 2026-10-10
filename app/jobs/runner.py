@@ -18,7 +18,7 @@ STALE_AFTER = timedelta(minutes=3)
 IDLE_SLEEP_S = 2.0
 # Job kinds this version of the code can run. A worker never claims other kinds, so an older app still
 # running in the background cannot pick up (and fail) jobs created by newer code — this happened once.
-SUPPORTED_KINDS = ("extract", "index", "reread_cloud", "lesson_plan", "simulation")
+SUPPORTED_KINDS = ("extract", "index", "reread_cloud", "lesson_plan", "simulation", "media", "real_life")
 
 
 def claim_next(engine: Engine) -> Job | None:
@@ -88,14 +88,33 @@ def run_job(service: IngestionService, job: Job) -> None:
                 f"{stats['duplicate_chunks']} duplicates skipped"
                 + (f", {stats['enrich_failed']} pages without summary" if stats["enrich_failed"] else "")
             )
-        elif job.kind in {"lesson_plan", "simulation"}:
+            if service.settings.auto_lesson:  # autopilot: the chapter's lesson is written once, as a draft
+                from app.lessons.service import LessonService
+
+                lessons = LessonService(
+                    service.engine, service.router, service.settings.lesson_min_relevance, service.settings
+                )
+                created = lessons.auto_create_for_document(job.document_id)
+                if created:
+                    summary += " · lesson " + ", ".join(f"'{x.topic}'" for x in created) + " queued"
+        elif job.kind in {"lesson_plan", "simulation", "media", "real_life"}:
             from app.lessons.service import LessonService  # Phase 2
 
-            lessons = LessonService(service.engine, service.router, service.settings.lesson_min_relevance)
+            lessons = LessonService(
+                service.engine, service.router, service.settings.lesson_min_relevance, service.settings
+            )
             if job.kind == "lesson_plan":
                 stats = lessons.generate_plan(job.lesson_id, progress)
                 summary = (
                     f"Lesson plan ready: {stats['sections']} sections, {stats['warnings']} warnings to check"
+                )
+            elif job.kind == "real_life":
+                stats = lessons.add_real_life(job.lesson_id, job.options, progress)
+                summary = f"{stats['added']} new real-life example(s) for '{job.options}'"
+            elif job.kind == "media":
+                stats = lessons.find_photos(job.lesson_id, progress)
+                summary = (
+                    f"Real-life photos: found for {stats['with_photos']} of {stats['examples']} examples"
                 )
             else:
                 stats = lessons.generate_simulation(job.lesson_id, job.options, progress)

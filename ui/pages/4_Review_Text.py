@@ -3,6 +3,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # make ui/common.py importable
 
+import json  # noqa: E402
+
 import common  # noqa: E402,F401
 import streamlit as st  # noqa: E402
 from common import document_label, ingestion_or_stop, page  # noqa: E402
@@ -17,7 +19,8 @@ page("Review Text", "📝")
 st.title("📝 Review extracted text")
 st.caption(
     "Compare each page with the extracted text, correct mistakes (especially formulas such as H₂SO₄ and numbers), "
-    "then mark it reviewed. Only reviewed pages become searchable for the AI Tutor."
+    "then mark it reviewed. Only reviewed pages become searchable for the AI Tutor. With the autopilot on, pages "
+    "that pass the automatic check (🤖) are already searchable — start with the pages marked ⚠️."
 )
 service, _ = ingestion_or_stop()
 CLOUD_MODEL = (
@@ -70,11 +73,27 @@ if nav1.button("◀ Previous", disabled=position == 0):
 if nav3.button("Next ▶", disabled=position == len(page_numbers) - 1):
     st.session_state[goto] = page_numbers[position + 1]
     st.rerun()
-labels = {
-    p.page_no: f"Page {p.page_no} {'✅' if p.reviewed else ('❌' if p.status == 'failed' else '•')}"
-    for p in pages
-}
+
+
+def badge(p) -> str:
+    if p.status == "failed":
+        return "❌"
+    if p.reviewed:
+        return "🤖 auto-checked" if p.auto_reviewed else "✅"
+    return "⚠️ to check" if p.quality == "check" else "•"
+
+
+labels = {p.page_no: f"Page {p.page_no} {badge(p)}" for p in pages}
 nav2.selectbox("Page", page_numbers, key=key, format_func=labels.get, label_visibility="collapsed")
+to_check = [p.page_no for p in pages if p.quality == "check" and not p.reviewed]
+if to_check:
+    st.caption(
+        f"⚠️ Pages that need your look: {', '.join(map(str, to_check))} — 🤖 = passed the automatic check "
+        "(already searchable; you may still review them)."
+    )
+    if st.button(f"Go to the next page to check (page {to_check[0]})"):
+        st.session_state[goto] = to_check[0]
+        st.rerun()
 current = next(p for p in pages if p.page_no == st.session_state[key])
 
 
@@ -98,8 +117,14 @@ with right:
     )
     if current.status == "failed":
         st.error(f"Extraction failed: {current.error}")
+    elif current.quality == "check" and not current.reviewed:
+        st.warning(
+            "⚠️ The automatic check flagged this page: " + "; ".join(json.loads(current.quality_notes or "[]"))
+        )
     elif current.error:
         st.warning(f"⚠️ {current.error}")
+    elif current.auto_reviewed:
+        st.success("🤖 Passed the automatic check and is searchable — your review is optional.")
     if current.status == "failed" or current.error:
         if st.button("Retry this page", help="Extracts this page again (your edits on it are discarded)"):
             service.retry_page(document.id, current.page_no)

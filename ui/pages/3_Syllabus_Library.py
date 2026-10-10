@@ -3,6 +3,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # make ui/common.py importable
 
+import json  # noqa: E402
+
 import common  # noqa: E402,F401
 import streamlit as st  # noqa: E402
 from common import STATUS_LABEL, document_label, ingestion_or_stop, page  # noqa: E402
@@ -12,11 +14,26 @@ from app.core.secrets import has_secret  # noqa: E402
 from app.ingestion.files import UPLOAD_TYPES  # noqa: E402
 from app.ingestion.service import CLOUD_OCR_COST_PER_PAGE_USD  # noqa: E402
 from app.jobs.runner import queue_summary  # noqa: E402
+from app.lessons.service import LessonService  # noqa: E402
 
 page("Syllabus Library", "📚")
 st.title("📚 Syllabus Library")
 service, worker = ingestion_or_stop()
 settings = service.settings
+lessons = LessonService(service.engine, service.router, settings.lesson_min_relevance, settings)
+LESSON_LABEL = {
+    "generating": "⏳ being written",
+    "draft": "📝 draft ready",
+    "approved": "✅ approved",
+    "failed": "❌ failed",
+}
+if settings.require_review and settings.auto_review_clean:
+    st.info(
+        "🤖 **Autopilot is on:** every new chapter is read, each page is checked automatically, clean pages become "
+        "searchable at once, and a draft lesson for the whole chapter is written"
+        + (" automatically" if settings.auto_lesson else " when you create it")
+        + ". Pages marked ⚠️ wait for your review. Nothing reaches Teach Mode before you approve the lesson."
+    )
 
 # ---------------------------------------------------------------- automatic scan of the source folder
 st.caption(
@@ -94,9 +111,13 @@ def live_status() -> None:
     if not documents:
         st.info("No documents yet. Add files above or drop them into the source folder, then refresh.")
         return
+    lesson_by_document = {}
+    for lesson in lessons.lessons():
+        lesson_by_document.setdefault(lesson.document_id, lesson)
     rows = []
     for document in documents:
         counts = service.page_counts(document.id)
+        lesson = lesson_by_document.get(document.id)
         rows.append(
             {
                 "#": document.id,
@@ -104,11 +125,15 @@ def live_status() -> None:
                 "class": document.class_level,
                 "subject": document.subject,
                 "chapter": document.chapter_no,
+                "title": document.chapter_title,
                 "status": STATUS_LABEL.get(document.status, document.status),
                 "pages": document.page_count,
                 "extracted": counts["done"],
+                "✅ auto-checked": counts["auto_reviewed"],
+                "⚠️ to check": counts["to_check"],
                 "reviewed": counts["reviewed"],
                 "searchable": counts["indexed"],
+                "lesson": LESSON_LABEL.get(lesson.status, lesson.status) if lesson else "—",
                 "note": document.error or "",
             }
         )
@@ -147,9 +172,51 @@ if documents:
             st.rerun()
 
     st.markdown(
-        f"**Progress:** {counts['done']}/{selected.page_count} pages extracted · {counts['reviewed']} reviewed · "
-        f"{counts['indexed']} searchable" + (f" · ❌ {counts['failed']} failed" if counts["failed"] else "")
+        f"**Progress:** {counts['done']}/{selected.page_count} pages extracted · {counts['reviewed']} reviewed "
+        f"({counts['auto_reviewed']} by the automatic check) · {counts['indexed']} searchable"
+        + (f" · ❌ {counts['failed']} failed" if counts["failed"] else "")
     )
+    flagged = [p for p in service.pages(selected.id) if p.quality == "check" and not p.reviewed]
+    if flagged:
+        with st.expander(f"⚠️ {len(flagged)} page(s) need your look — why", expanded=True):
+            for p in flagged:
+                reasons = "; ".join(json.loads(p.quality_notes or "[]")) or "flagged by the automatic check"
+                st.markdown(f"- **Page {p.page_no}** — {reasons}")
+            st.caption(
+                "Open **📝 Review pages**, correct them if needed and mark them reviewed — they then become "
+                "searchable automatically on the next indexing."
+            )
+            ocr_flagged = [p.page_no for p in flagged if p.method in {"ocr", "ocr_reused"}]
+            if (
+                ocr_flagged
+                and has_secret("openai")
+                and st.button(
+                    f"☁️ Re-read the flagged scanned pages {', '.join(map(str, ocr_flagged))} with the cloud model "
+                    f"(≈ ${len(ocr_flagged) * CLOUD_OCR_COST_PER_PAGE_USD:.2f})"
+                )
+            ):
+                service.enqueue(
+                    "reread_cloud", selected.id, options="pages=" + ",".join(map(str, ocr_flagged))
+                )
+                st.toast(
+                    "Cloud re-read queued — pages that then pass the check become searchable by themselves."
+                )
+    elif counts["done"] and settings.auto_review_clean:
+        st.caption("✅ The automatic check found no problem pages in this document.")
+    chapter_lessons = [x for x in lessons.lessons() if x.document_id == selected.id]
+    if chapter_lessons:
+        st.caption(
+            "📘 Lessons from this chapter: "
+            + ", ".join(f"*{x.title}* ({LESSON_LABEL.get(x.status, x.status)})" for x in chapter_lessons)
+            + " — open **Lesson Studio** to check and approve."
+        )
+    elif counts["indexed"] and st.button("📘 Write the lesson for this chapter now"):
+        created = lessons.auto_create_for_document(selected.id)
+        st.toast(
+            "Lesson " + ", ".join(f"'{x.topic}'" for x in created) + " queued."
+            if created
+            else "A lesson already exists."
+        )
     b1, b2, b3, b4 = st.columns(4)
     if b1.button("📝 Review pages"):
         try:

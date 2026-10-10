@@ -138,6 +138,14 @@ tasks:
     max_tokens: 12000
     reasoning_effort: low
     cache: false                     # "Regenerate" must produce a new version
+  image_check:                       # does a found photo really show the real-life example? (media finder)
+    primary: ollama/qwen3-vl:2b-instruct   # local and free; NO paid fallback — an unchecked photo is just skipped
+    max_tokens: 300
+    temperature: 0
+    reasoning_effort: minimal
+    json_output: true
+    ollama_options:
+      num_ctx: 4096
   simulation_review:                 # pictures of a simulation (start + each control) checked against the facts
     primary: openai/gpt-5.4-mini     # vision; ≈ $0.006–0.015 per review. No fallback: if it fails, the teacher's
     max_tokens: 6000                 # own preview is the check (the simulation is not blocked)

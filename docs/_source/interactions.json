@@ -1046,6 +1046,257 @@
         "For maps, refusing to place a name is better than placing it confidently in the wrong town.",
         "Test on a copy of the user's data so their own review steps stay untouched."
       ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Autopilot: upload a chapter, get a draft lesson (Blueprint v1.10)",
+      "request": "Every time I have to share the PDF with Claude; when I upload a PDF in Syllabus Library the same quality and detail should be captured automatically and a detailed lesson plan built. Discuss and build. Decisions: clean pages automatic, others wait; one lesson per chapter automatically; cloud re-read only when I click.",
+      "what_i_did": [
+        "Compared the app's steps with what I had done by hand for the history chapter, proposed an 'autopilot', and asked the owner three decisions (auto-review of clean pages, automatic lesson, cloud re-read) because each trades review time against safety or cost.",
+        "Wrote an explainable page quality check (little text, unreadable font characters, symbols, split words, OCR warnings, OCR tables, Marathi/Hindi) and tested it on the owner's 3 real chapters: history 8/8 clean, EVS 6/6 clean, scanned science 4/17 flagged (local-OCR tables).",
+        "Clean pages are marked 🤖 auto-checked and indexed; flagged pages wait with reasons and an optional cloud re-read button; a teacher's own review replaces the automatic mark.",
+        "Chapter title found on page 1 (all 3 chapters correct); after indexing, one draft lesson per chapter is created from the whole chapter (science too); pages reviewed later trigger a 'Rebuild lesson' notice.",
+        "New database columns via additive migration; new settings ATS_AUTO_REVIEW_CLEAN / ATS_AUTO_LESSON shown on Settings & Cost; Syllabus Library, Review Text and Lesson Studio show the autopilot results.",
+        "End-to-end on a copy of the data (history chapter treated as a new upload): 3 jobs, 129 s, no clicks, lesson 2.6 ¢. 284 tests pass; README 3f, Blueprint v1.10 (D38–D40), code-workflow map updated."
+      ],
+      "files": [
+        {
+          "path": "app/ingestion/quality.py",
+          "change": "NEW: page quality check + chapter title guess"
+        },
+        {
+          "path": "app/ingestion/service.py",
+          "change": "autopilot_check(), chapter title, re-check after cloud re-read, page_counts to_check/auto_reviewed"
+        },
+        {
+          "path": "app/db/models.py, app/db/migrations.py",
+          "change": "Page.quality, quality_notes, auto_reviewed (additive)"
+        },
+        {
+          "path": "app/jobs/runner.py, app/lessons/service.py, app/lessons/planner.py",
+          "change": "lesson created after indexing; whole-chapter lessons; pages_added_after()"
+        },
+        {
+          "path": "app/core/config.py",
+          "change": "auto_review_clean, auto_lesson"
+        },
+        {
+          "path": "ui/pages/3_Syllabus_Library.py, 4_Review_Text.py, 2_Lesson_Studio.py, 6_Settings_and_Cost.py",
+          "change": "autopilot panel, badges/reasons, rebuild notice, settings"
+        },
+        {
+          "path": "tests/test_autopilot.py (+ test_ingestion.py)",
+          "change": "14 new tests; old manual-review tests run with the autopilot off"
+        }
+      ],
+      "issues": [
+        {
+          "problem": "An existing test failed: pages were searchable before review.",
+          "cause": "Expected — the autopilot changes the default behaviour.",
+          "fix": "Old manual-review tests now run with the autopilot off; the autopilot has its own tests.",
+          "type": "Intended change"
+        },
+        {
+          "problem": "The 'pages added after this lesson' notice would always list the exercise page.",
+          "cause": "The planner deliberately skips exercise passages.",
+          "fix": "The notice ignores exercise passages too.",
+          "type": "Claude caught before testing"
+        },
+        {
+          "problem": "A cloud re-read page was flagged for its table.",
+          "cause": "The table rule did not distinguish the cloud model, which reads tables correctly.",
+          "fix": "The table rule applies only to the local OCR.",
+          "type": "Found on the owner's science chapter"
+        },
+        {
+          "problem": "In the autopilot test the fake AI backend handed the prepared lesson to the OCR step.",
+          "cause": "Test setup (a too-short page went to OCR).",
+          "fix": "Test page with 27 real words (text layer, still flagged).",
+          "type": "Claude test-setup slip"
+        }
+      ],
+      "code": [
+        {
+          "file": "app/ingestion/service.py",
+          "why": "The heart of the autopilot: clean pages count as reviewed, flagged pages wait.",
+          "snippet": "result = assess(page.text, page.method, page.error)\npage.quality = result.status\nif self.settings.auto_review_clean and result.status == 'clean' and not page.reviewed:\n    page.reviewed, page.auto_reviewed = True, True"
+        },
+        {
+          "file": "app/jobs/runner.py",
+          "why": "After indexing, the chapter's lesson is written once, as a draft.",
+          "snippet": "if service.settings.auto_lesson:\n    created = lessons.auto_create_for_document(job.document_id)"
+        }
+      ],
+      "commands": [
+        "end-to-end with ATS_DATA_DIR = a copy of data/ (history chapter re-added as a new upload): 3 jobs, 129 s, 2.6 ¢",
+        "uv run pytest (284 passed) · uv run ruff check (clean)",
+        "cd docs/_source && npm run blueprint && npm run interactions; uv run python docs/_source/gen_code_workflow.py"
+      ],
+      "lessons": [
+        "Automate the checks a careful person does by hand, but keep the reasons visible — the teacher sees why a page waits.",
+        "Decisions that trade the user's time against safety or cost belong to the user: ask, then build exactly that.",
+        "Keep the human approval at the end (Teach Mode needs approval), even when everything before it is automatic."
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Maths lessons: real-life photos, 2D and 3D pictures, checked answers (Blueprint v1.11)",
+      "request": "Make every subject very visual: history pictures linked across chapters, maths in 2D/3D with where, why and how it is used in real life, English too; buttons for real-life examples with images, 2D and 3D; take images from Wikimedia and the internet with tools attached to the project, consider free Hugging Face models, explore the options robustly. Owner chose: maths first. Sample PDFs: Class 7 Maths ch. 3–4, Class 7 English 2.6.",
+      "what_i_did": [
+        "Researched the options: free 3D generators (TripoSR ≈ 6 GB, Hunyuan3D ≥ 10 GB, SV3D ≈ 20 GB graphics memory vs the laptop's 4 GB) and image models (wrong numbers/angles) are not usable for maths; real photos come from Wikimedia Commons / Wikidata / Openverse (free licences), and maths pictures are drawn by code from computed values.",
+        "app/lessons/maths.py: maths lesson design; HCF, LCM, primes, co-primes, twin primes, angle pairs and one-variable equations re-computed (equation steps with reasons); scenes for the player.",
+        "assets/mathkit.js (hand-written, offline): factor tree, Venn of prime factors, Euclid division, runners meeting after the LCM, sieve, balance scale, drag-the-ray angles, triangle with draggable corner (sum 180°, exterior angle), polygon split into triangles, and a tiny 3D renderer for ramp, door, laptop, scissors and clock. Every scene screenshotted and checked by eye; 4 layout faults fixed.",
+        "app/media/finder.py: photo search with licence rules, host allow-list, size and time limits, title rule (no logos/maps/charts) and a check by the local vision model; background jobs 'media' and 'real_life'; MediaAsset table with the credit line.",
+        "Lesson Studio tab 'Concepts & visuals' with a Visualise toolbar (Real life · Photos · 2D · 3D), 'More real-life examples', 'Find photos now', 'Wrong photo'; Teach Mode slide per concept; settings rows.",
+        "A file holding several chapters is split (chapter starts found on the pages) and gets one lesson per chapter from its own pages.",
+        "End-to-end twice on a copy of the data with the owner's Class 7 Maths PDF; problems found in run 1 fixed (see issues); run 2: 2 lessons, 3.6 ¢, all 15 computed answers right, photos for 34 of 38 examples in ≈ 9 min (free). 330 tests pass; README 3g, Blueprint v1.11 (D41–D44), code-workflow map updated."
+      ],
+      "files": [
+        {
+          "path": "app/lessons/maths.py",
+          "change": "NEW: maths prompt, computations, answer checks, scenes"
+        },
+        {
+          "path": "assets/mathkit.js",
+          "change": "NEW: hand-written 2D/3D maths player"
+        },
+        {
+          "path": "app/media/finder.py (+ __init__.py)",
+          "change": "NEW: free-licence photo search, checked by the local vision model"
+        },
+        {
+          "path": "app/lessons/planner.py",
+          "change": "lesson_profile() → maths; parse_json_object(); page range for a chapter"
+        },
+        {
+          "path": "app/lessons/service.py",
+          "change": "find_photos, add_real_life, reject_photo, photos, chapters_of, page_range; one lesson per chapter; settings passed in"
+        },
+        {
+          "path": "app/ingestion/quality.py",
+          "change": "find_chapters() for files with several chapters"
+        },
+        {
+          "path": "app/jobs/runner.py",
+          "change": "job kinds 'media' and 'real_life'"
+        },
+        {
+          "path": "app/lessons/viewers.py",
+          "change": "math_html()"
+        },
+        {
+          "path": "app/db/models.py, app/core/config.py, config/models.yaml",
+          "change": "MediaAsset; media settings; task image_check (local qwen3-vl)"
+        },
+        {
+          "path": "ui/lesson_views.py, ui/pages/1_Teach_Mode.py, 2_Lesson_Studio.py, 3_Syllabus_Library.py, 6_Settings_and_Cost.py",
+          "change": "Visualise toolbar, concept slides, photo credit lines, settings"
+        },
+        {
+          "path": "tests/test_maths.py (+ test_ui.py, test_autopilot.py)",
+          "change": "46 new tests incl. mocked Wikimedia, real browser runs of every scene, real textbook cases"
+        },
+        {
+          "path": ".gitignore",
+          "change": "'media/' → '/media/' so app/media/ (code) is tracked"
+        }
+      ],
+      "issues": [
+        {
+          "problem": "Run 1 made ONE lesson for a file with two chapters; chapter 4 (angles) was missing.",
+          "cause": "The autopilot assumed one chapter per file.",
+          "fix": "Chapter starts are found on the pages (numbers must follow on); one lesson per chapter from its own pages.",
+          "type": "Found in end-to-end test"
+        },
+        {
+          "problem": "A correct answer (LCM 320 from 'product 1280, GCD 4') was 'corrected' to 1280.",
+          "cause": "The checker treated the given numbers as the numbers to combine.",
+          "fix": "Word problems and reverse questions are never re-computed.",
+          "type": "Claude's checker mistake, found in end-to-end test"
+        },
+        {
+          "problem": "'Reduce 209/247 to simplest form' (answer 11/13) was replaced by the HCF 19; '(a+15)° and 2a° … each angle' (40° and 50°) was replaced by 'a = 25'; '2 × 2 × 2 × 3' flagged against '24 = 2 × 2 × 2 × 3'.",
+          "cause": "Comparisons were not certain enough.",
+          "fix": "HCF/LCM only when the question names it; equations compared only with an answer 'a = …'; prime factors compared as a list; otherwise the AI's answer is never replaced. Final run: no false warnings.",
+          "type": "Claude's checker mistake, found in end-to-end test"
+        },
+        {
+          "problem": "'Twin prime numbers' was judged different from 'twin primes'.",
+          "cause": "Word answers were compared as text.",
+          "fix": "Yes/no answers are compared by meaning.",
+          "type": "Found in end-to-end test"
+        },
+        {
+          "problem": "Concept names came out as codes ('twin_prime_numbers').",
+          "cause": "The model copied the kind code.",
+          "fix": "Prompt asks for the textbook heading; codes are turned into readable names.",
+          "type": "Found in end-to-end test"
+        },
+        {
+          "problem": "One photo download hung for 19 minutes.",
+          "cause": "httpx's timeout is per read; a slow server kept sending a few bytes.",
+          "fix": "Streamed downloads with a 30 s total limit and size cap; 150 s per search.",
+          "type": "Found in end-to-end test"
+        },
+        {
+          "problem": "Wrong photos for abstract phrases (a planet chart for 'number chart', a bus timetable for 'school bell timetable').",
+          "cause": "The AI asked for things a camera cannot photograph; the small vision model's caption then matched.",
+          "fix": "Prompt requires concrete photo phrases (good/bad examples); teacher's 'Wrong photo' button. Run 2: 24 of 27 photos clearly right.",
+          "type": "Found in end-to-end test"
+        },
+        {
+          "problem": "A publisher's logo was accepted for 'open book'.",
+          "cause": "Vision caption matched.",
+          "fix": "Titles with logo/icon/map/chart/flag… are skipped, also for stored photos.",
+          "type": "Found by inspecting the photos"
+        },
+        {
+          "problem": "Regex word boundaries became invisible control characters in 2 files.",
+          "cause": "Claude wrote '\\\\b' through a shell here-document, which turned it into a backspace character.",
+          "fix": "Repaired with character codes; all files scanned; edits with regexes now go through script files.",
+          "type": "Claude tooling slip (caught by testing)"
+        },
+        {
+          "problem": "Maths kit layout faults: factor-tree result over a circle, angle view off the frame, mirrored 3D door arc, hidden laptop label, text overflow.",
+          "cause": "First drafts.",
+          "fix": "Fixed after screenshots of every scene.",
+          "type": "Claude caught before delivery"
+        },
+        {
+          "problem": "The new code folder app/media/ was invisible to git (it would have been left out of the owner's commit).",
+          "cause": "The .gitignore rule 'media/' (meant for generated media) matched every folder named media.",
+          "fix": "Rule narrowed to '/media/'; downloaded photos stay out of git because they live in data/.",
+          "type": "Claude caught before delivery"
+        }
+      ],
+      "code": [
+        {
+          "file": "app/lessons/maths.py",
+          "why": "An AI answer is replaced only when the comparison is certain.",
+          "snippet": "if kind in _NAMES_OPERATION and len(numbers) >= 2:\n    if text and not _NAMES_OPERATION[kind].search(text):\n        return dict(_UNCHECKED)  # e.g. simplest form of a fraction\n    computed = str(hcf(numbers) if kind == 'hcf' else lcm(numbers))\n    ok = (stated_numbers == [computed]) if len(stated_numbers) == 1 else None"
+        },
+        {
+          "file": "app/media/finder.py",
+          "why": "A photo is kept only if the local vision model's description matches the wanted thing.",
+          "snippet": "similarity = self._similarity(query, caption) if caption else 0.0\nfits = similarity >= CAPTION_MATCH or (said_yes and similarity >= CAPTION_MIN)"
+        },
+        {
+          "file": "app/ingestion/quality.py",
+          "why": "A file with several chapters becomes one lesson per chapter.",
+          "snippet": "if found and (not starts and page_no == pages[0][0] or starts and found[0] == starts[-1]['no'] + 1):\n    starts.append({'no': found[0], 'title': found[1], 'start': page_no})"
+        }
+      ],
+      "commands": [
+        "end-to-end with ATS_DATA_DIR = %TEMP%\\ats_e2e_maths (copy of data/): run 1 31 min (19 min stalled download), run 2 10 min; cloud cost 5.7 ¢ in total",
+        "uv run pytest (330 passed) · uv run ruff check (clean)",
+        "cd docs/_source && npm run blueprint && npm run interactions; uv run python docs/_source/gen_code_workflow.py"
+      ],
+      "lessons": [
+        "A checker that 'corrects' must be more certain than the thing it corrects — otherwise it should only show its own result.",
+        "Real textbooks have word problems, reverse questions and two chapters in one file; only a real end-to-end run finds these.",
+        "Photo search works for concrete things (a set square, a window grill), not for ideas — ask for concrete phrases and let the teacher reject.",
+        "Network timeouts must cover the whole download, not each read."
+      ]
     }
   ]
 }

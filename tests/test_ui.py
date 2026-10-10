@@ -195,6 +195,53 @@ def test_history_lesson_has_its_own_tabs_and_slides(approved_history_lesson):
                       "People in this lesson", "Key points"]  # fmt: skip
 
 
+MATHS_PLAN = {
+    "title": "HCF and LCM",
+    "profile": "maths",
+    "objectives": ["Find the HCF"],
+    "sections": [{"heading": "Factors", "content": "Common factors [1].", "cites": [1], "pages": [1]}],
+    "key_points": ["HCF divides both numbers"],
+    "concepts": [
+        {"name": "HCF", "kind": "hcf", "explain": "The biggest common factor.", "pages": [1],
+         "examples": [{"text": "HCF of 144 and 252", "numbers": [144, 252], "answer": "36", "computed": "36", "ok": True}],
+         "real_life": [{"title": "Equal teams", "story": "Split two classes into equal teams.", "image_query": "school children", "photos": []}]},
+        {"name": "Complementary angles", "kind": "complementary_angles", "examples": [{"angles": [70], "computed": "20°"}],
+         "real_life": []},
+    ],
+    "sources": [{"n": 1, "page": 1, "citation": "Ch. 3, page 1", "text": "Acids are sour."}],
+}  # fmt: skip
+
+
+def test_maths_lesson_has_concepts_with_visualise_buttons(library_with_a_document):
+    import json
+
+    from sqlmodel import Session
+
+    from app.db.models import Lesson
+    from app.db.session import make_engine
+
+    with Session(make_engine(get_settings().db_path)) as s:
+        s.add(Lesson(topic="HCF and LCM", title="HCF and LCM", status="approved",
+                     plan_json=json.dumps(MATHS_PLAN, ensure_ascii=False), document_id=library_with_a_document.id))  # fmt: skip
+        s.commit()
+    at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/2_Lesson_Studio.py"), default_timeout=90).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert len(at.tabs) == 3  # content, concepts & visuals, sources
+    toolbars = at.get("button_group")
+    assert len(toolbars) == 2  # one Visualise toolbar per concept
+    assert any("More real-life examples" in b.label for b in at.button)
+    at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/1_Teach_Mode.py"), default_timeout=90).run()
+    titles = [at.title[0].value]
+    for _ in range(8):
+        nxt = next(b for b in at.button if b.label == "Next ▶")
+        if nxt.disabled:
+            break
+        nxt.click().run()
+        assert not at.exception, [e.value for e in at.exception]
+        titles.append(at.title[0].value)
+    assert titles == ["HCF and LCM", "Factors", "HCF", "Complementary angles", "Key points"]
+
+
 def test_chemistry_lab_example_buttons_and_typed_input():
     at = AppTest.from_file(str(PROJECT_ROOT / "ui/pages/7_Chemistry_3D_Lab.py"), default_timeout=60).run()
     assert not at.exception, [e.value for e in at.exception]

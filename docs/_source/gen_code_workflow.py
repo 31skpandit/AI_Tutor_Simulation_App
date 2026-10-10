@@ -78,7 +78,7 @@ STACK = [
         ("LiteLLM 1.102.1 (SDK)", "one interface to Ollama and OpenAI"),
         ("Ollama 0.34", "runs local models free on the GPU"),
         ("qwen3:4b-instruct", "local text: tutor, page summaries"),
-        ("qwen3-vl:2b-instruct", "local vision: OCR of page images"),
+        ("qwen3-vl:2b-instruct", "local vision: OCR of page images; checks lesson photos"),
         ("qwen3-embedding:0.6b", "local embeddings for search"),
         ("OpenAI gpt-5-nano / 5.4-mini / 5.2", "cloud: cheap answers, lessons, simulations, picture review, premium"),
     ]),
@@ -97,6 +97,7 @@ STACK = [
         ("in-house chemistry.py", "equation balancing checker"),
         ("Natural Earth (India view)", "offline map outlines, India's official boundaries"),
         ("GeoNames India", "563 000 places for the history maps (CC BY 4.0)"),
+        ("Wikimedia Commons · Wikidata · Openverse", "free-licence real-life photos (CC0 / PD / CC BY / BY-SA)"),
     ]),
     ("Browser libraries (offline)", "#ffe6cc", [
         ("p5.js 2.3.3", "drawing engine of simulations"),
@@ -104,13 +105,14 @@ STACK = [
         ("labkit.js (hand-written)", "layout, labels, controls, apparatus"),
         ("chem3d.js (hand-written)", "3D electron / reaction player"),
         ("historykit.js (hand-written)", "timeline, map, cause → effect player"),
+        ("mathkit.js (hand-written)", "factor tree, Venn, angles, 3D ramp/door/clock"),
     ]),
     ("Security & quality", "#f8cecc", [
         ("keyring 25.7.0", "API keys in Windows Credential Manager"),
         ("loguru 0.7.3", "logs (keys redacted)"),
-        ("httpx 0.28.1", "model health checks"),
+        ("httpx 0.28.1", "model health checks; photo search (allow-listed hosts)"),
         ("pip-audit 2.10.1", "vulnerability audit (scripts/audit.ps1)"),
-        ("pytest 9.1.1", "246 automated tests"),
+        ("pytest 9.1.1", "330 automated tests"),
         ("ruff 0.16.9", "lint and format"),
     ]),
     ("Documentation", "#f5f5f5", [
@@ -165,6 +167,18 @@ LANES = [
         ("app/ingestion/ocr.py", "looks_degenerate() · collapse_repeats()", "loop detected → task 'ocr_retry'", "check"),
         ("app/ingestion/ocr.py", "clean_ocr_text() · normalize_markdown_tables()", "tidy text, repair tables", "check"),
         ("app/db/models.py", "Page", "saved: 📝 needs review", "db"),
+    ]),
+    ("1b · Autopilot (automatic check → lesson)", "#e8f5e9", [
+        ("app/ingestion/service.py", "extract_document() → autopilot_check()", "runs after every extraction", "svc"),
+        ("app/ingestion/quality.py", "assess()", "clean / check with reasons (little text, odd characters, OCR tables …)", "check"),
+        ("app/db/models.py", "Page.quality · quality_notes · auto_reviewed", "result stored per page", "db"),
+        ("app/ingestion/service.py", "_guess_chapter_title() → guess_chapter_title()", "title from page 1", "svc"),
+        ("app/ingestion/service.py", "enqueue('index')", "clean pages become searchable (lane 3)", "svc"),
+        ("app/jobs/runner.py", "run_job('index') → auto_create_for_document()", "one draft lesson per chapter", "svc"),
+        ("app/ingestion/quality.py", "find_chapters()", "a file with several chapters → page ranges (one lesson each)", "check"),
+        ("app/lessons/service.py", "chapter_topic() · page_range() · generate_plan(whole_chapter)", "the whole chapter (its own pages) goes to the planner (lane 6)", "svc"),
+        ("app/lessons/service.py", "pages_added_after()", "pages reviewed later → Rebuild notice", "check"),
+        ("ui/pages/3_Syllabus_Library.py", "autopilot panel", "⚠️ pages with reasons, cloud re-read on click", "ui"),
     ]),
     ("2 · Review the text", "#e3f2fd", [
         ("ui/pages/4_Review_Text.py", "preview()", "image beside text, edit / preview tabs", "ui"),
@@ -251,12 +265,27 @@ LANES = [
         ("app/lessons/figures.py", "extract_figures() · portrait_of()", "textbook's own captioned pictures for slides / people", "svc"),
         ("ui/lesson_views.py", "render_timeline · render_map · render_cause_effect · render_people", "Lesson Studio tabs and Teach Mode slides", "ui"),
     ]),
+    ("8c · Maths lessons & real-life photos", "#eef7ee", [
+        ("app/lessons/planner.py", "lesson_profile(subject)", "Maths / Mathematics → 'maths' lesson design", "svc"),
+        ("app/llm/router.py", "complete('lesson_plan')", "maths prompt: concepts, textbook examples, real-life stories + photo phrases", "ai"),
+        ("app/lessons/maths.py", "verify() → check_example() · solve_linear() · hcf() · lcm()", "every answer re-computed; wrong AI answers replaced and listed", "check"),
+        ("app/lessons/service.py", "generate_plan() → enqueue('media')", "photo search queued after the plan", "db"),
+        ("app/jobs/runner.py", "run_job('media') → find_photos()", "one search per real-life example", "svc"),
+        ("app/media/finder.py", "find() → wikidata_image() · search_commons() · search_openverse()", "allow-listed hosts; free licences only; no SVG/HTML", "ext"),
+        ("app/media/finder.py", "_download() · check()", "thumbnail ≤ 1.5 MB; local qwen3-vl caption must match the wanted subject", "ai"),
+        ("app/db/models.py", "MediaAsset", "photo file + credit: title, author, licence, link", "db"),
+        ("app/lessons/maths.py", "visuals_for(concept)", "factor tree, Venn, division, runners, sieve, balance, angles, 3D objects", "svc"),
+        ("app/lessons/viewers.py", "math_html()", "assets/mathkit.js player (no network)", "js"),
+        ("ui/lesson_views.py", "render_concept()", "Visualise: 🌍 Real life · 🖼️ Photos · 📐 2D · 🧊 3D", "ui"),
+        ("app/lessons/service.py", "add_real_life()", "'More real-life examples' button (≈ 0.2 ¢) → photos", "ai"),
+        ("app/lessons/service.py", "reject_photo()", "teacher's 'Wrong photo' — never chosen again", "db"),
+    ]),
     ("9 · 3D Lab · Settings · quality", "#f5f5f5", [
         ("ui/pages/7_Chemistry_3D_Lab.py", "examples / typed input", "any formula or equation → render_scene()", "ui"),
         ("ui/pages/6_Settings_and_Cost.py", "keys · budget · call log", "secrets.set_secret(), LLMCall table, find_browser()", "ui"),
         ("app/tools/verify_models.py", "verify() → health.ollama_models() · openai_models()", "are configured models available?", "check"),
         ("app/ingestion/__main__.py", "main()", "command line: scan / status / index / ask", "svc"),
-        ("tests/ (pytest)", "246 tests", "chemistry rules, router, ingestion, browser runs, every page", "check"),
+        ("tests/ (pytest)", "330 tests", "chemistry rules, router, ingestion, browser runs, every page", "check"),
         ("scripts/audit.ps1", "pip-audit", "known vulnerabilities in the locked packages", "check"),
         ("docs/_source", "gen_doc.js · gen_interactions.js · gen_drawio.py · gen_code_workflow.py", "blueprint, learning log, these maps", "ext"),
     ]),
@@ -296,13 +325,16 @@ for li, (name, colour, steps) in enumerate(LANES):
 # Stage-to-stage links and the AI calls that go through lane 5 (router)
 arrow("L0_12", "L1_5", "worker runs jobs", dashed=False)
 arrow("L1_12", "L2_0", "")
-arrow("L2_4", "L3_0", "")
-arrow("L3_5", "L4_5", "passages searched")
-arrow("L6_7", "L7_0", "")
-arrow("L7_9", "L8_0", "")
-arrow("L6_3", "L9_1", "history subject")
-for src in ["L1_9", "L3_3", "L3_4", "L4_7", "L6_4", "L7_3", "L7_8", "L9_4"]:
-    arrow(src, "L5_0", "", dashed=True)
+arrow("L2_4", "L4_0", "clean pages")
+arrow("L2_7", "L7_3", "whole chapter")
+arrow("L3_4", "L4_0", "")
+arrow("L4_5", "L5_5", "passages searched")
+arrow("L7_7", "L8_0", "")
+arrow("L8_9", "L9_0", "")
+arrow("L7_3", "L10_1", "history subject")
+arrow("L7_3", "L11_0", "maths subject")
+for src in ["L1_9", "L4_3", "L4_4", "L5_7", "L7_4", "L8_3", "L8_8", "L10_4", "L11_1", "L11_6", "L11_11"]:
+    arrow(src, "L6_0", "", dashed=True)
 
 xml = (
     '<mxfile host="app.diagrams.net" type="device"><diagram id="code" name="Code workflow and stack">'

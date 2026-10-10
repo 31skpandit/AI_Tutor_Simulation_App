@@ -4,7 +4,7 @@ An AI teaching assistant that runs on your laptop. You add your textbook chapter
 check the extracted text once, and then an AI tutor answers students' questions **from your textbook, with page
 references**. Lessons, simulations and animated videos are added in Phases 2–3.
 
-- **Full plan:** [docs/AI_Teaching_Studio_Project_Blueprint_v1.9.docx](docs/AI_Teaching_Studio_Project_Blueprint_v1.9.docx)
+- **Full plan:** [docs/AI_Teaching_Studio_Project_Blueprint_v1.11.docx](docs/AI_Teaching_Studio_Project_Blueprint_v1.11.docx)
   (architecture, workflows, models, security, phase plan). Diagrams: [docs/diagrams/](docs/diagrams/).
 - **Whole-codebase map (one draw.io page):** [docs/AI_Teaching_Studio_Architecture.drawio](docs/AI_Teaching_Studio_Architecture.drawio)
   — system overview, ingestion, tutor, AI router, lessons & simulation checks, 3D chemistry, code map, teacher
@@ -15,11 +15,12 @@ references**. Lessons, simulations and animated videos are added in Phases 2–3
 - **Learning log:** [docs/Claude Interactions.docx](docs/Claude%20Interactions.docx) — every change, the key code
   and why, and every issue/mistake with cause and fix (updated in every session).
 - **Status:** Phase 0 ✅ · Phase 1 ✅ (+ improvements) · **Phase 2 ✅ built — 3 pilot lessons ready for your review**
-  (section 3c) · **3D Chemistry Lab ✅** (section 3d) · **History lessons ✅** (section 3e) · next: geography,
-  physics, maths designs and Phase 3 (animated videos & narration).
+  (section 3c) · **3D Chemistry Lab ✅** (section 3d) · **History lessons ✅** (section 3e) · **Autopilot ✅** (3f) ·
+  **Maths lessons with real-life photos, 2D & 3D ✅** (section 3g) · next: history story map across chapters,
+  English, geography, physics and Phase 3 (animated videos & narration).
 
 **Contents:** 1 One-time setup · 2 Start / stop · 3 Test Phase 1 with your PDF · 3b Better tables & diagrams ·
-3c Lessons & simulations (Phase 2) · 3d 3D Chemistry Lab · 3e History lessons · 4 Teaching with the app · 5 Adding more chapters · 6 Models & budget ·
+3c Lessons & simulations (Phase 2) · 3d 3D Chemistry Lab · 3e History lessons · 3f Autopilot · 3g Maths lessons · 4 Teaching with the app · 5 Adding more chapters · 6 Models & budget ·
 7 Security rules · 8 Development · 9 Troubleshooting
 
 ---
@@ -203,6 +204,30 @@ shown with the notes in a blue box for you to judge. Typical cost: 2–12 ¢ per
 that cannot connect to the internet; the drawing libraries are stored inside the project and verified by their
 fingerprint, so lessons work offline. **Your preview is still the final check** — use *Change request* + *Regenerate*.
 
+## 3f. Autopilot — upload a chapter, get a draft lesson (no other clicks)
+
+**What happens after you drop a PDF into `source/` or upload it on Syllabus Library** (measured on the history
+chapter: 3 background jobs, ≈ 2 minutes, 2.6 ¢):
+1. The text is read (built-in text, column-aware; scans by local OCR).
+2. **Every page is checked automatically**: no/very little text, unreadable characters (font problems),
+   mostly symbols, words split into letters, OCR warnings, tables read by local OCR, Marathi/Hindi text.
+   - ✅ **clean pages** count as reviewed (🤖 *auto-checked*) and become searchable at once;
+   - ⚠️ **flagged pages** wait for you — Syllabus Library lists each one **with the reason**, and for scanned pages
+     offers a one-click **☁️ cloud re-read** (cost shown, only when you click).
+3. The **chapter title** is found on page 1 (e.g. *Economic Development*); a file holding **several chapters** is
+   split into chapters (page ranges).
+4. A **draft lesson for each chapter** is written automatically (maths, history or science design from the
+   subject); maths lessons then look for real-life photos (section 3g).
+5. You open **Lesson Studio**, check it and **Approve** — nothing reaches Teach Mode before that.
+   If you review flagged pages later, Lesson Studio says *"page(s) X became searchable after this lesson was
+   written"* with a **🔁 Rebuild lesson** button.
+
+**Your part:** look at the ⚠️ pages (Review Text → *Go to the next page to check*), then check and approve the lesson.
+Switch the autopilot off in `.env` with `ATS_AUTO_REVIEW_CLEAN=false` (review every page yourself) and/or
+`ATS_AUTO_LESSON=false` (create lessons yourself); current values are on Settings & Cost.
+Chapters added **before** the autopilot keep their review state; for them use **📘 Write the lesson for this chapter
+now** on Syllabus Library if they have no lesson yet.
+
 ## 3e. History lessons (timeline, map, causes & effects) — step by step
 
 Works for chapters whose subject is **History** (also Civics / Political Science / Economics). Tested end to end on
@@ -233,6 +258,55 @@ Works for chapters whose subject is **History** (also Civics / Political Science
 Map data: Natural Earth (public domain, India point-of-view boundaries) and GeoNames (CC BY 4.0) — stored in
 `assets/geo/` (SHA-256 checked); rebuilt only with `uv run python scripts/build_geo.py <download folder>`.
 The first map after installing takes ≈ 10 s once (builds `data/geo_places.db`).
+
+## 3g. Maths lessons — concepts, real-life photos, 2D and 3D pictures
+
+Works for chapters whose subject is **Maths / Mathematics** (file name like `Class 7 - Maths - 3rd Chapter.pdf`).
+The autopilot (3f) writes the lesson; then open **Lesson Studio → 🧮 Concepts & visuals**. Each concept shows:
+
+- its **explanation** and the **textbook's worked examples** — every answer that can be computed (HCF, LCM, prime
+  factors, co-primes, twin primes, angle pairs, one-variable equations) is **re-computed by the app**; a wrong AI
+  answer is replaced and listed in the yellow warnings (✅ *checked by the app*);
+- a **Visualise** toolbar:
+
+| Button | What you see | Made by |
+|---|---|---|
+| 🌍 **Real life** | 2–3 everyday Indian examples (railway gate, clock, cricket, market…) with a story of *where, why and how* the idea is used, each with a photo | AI writes the stories; photos below |
+| 🖼️ **Photos** | all real photos for the concept, each with its **credit line** (title, author, licence, link) | Wikimedia Commons / Wikidata / Openverse — free licences only (CC0, public domain, CC BY, CC BY-SA) |
+| 📐 **2D** | factor tree, Venn diagram of prime factors (HCF = overlap, LCM = everything; co-primes = empty overlap), Euclid's division steps, runners on a track meeting after the LCM, sieve of primes / twin primes, balance scale for equations, **drag-the-ray angle explorer** (complementary, supplementary, linear pair, vertically opposite, parts of an angle), **triangle with a draggable corner** (angles always add up to 180°; exterior angle = the two remote interior angles), **polygon split into triangles** ((n − 2) × 180°) | hand-written code (`assets/mathkit.js`) from the computed numbers — free, offline |
+| 🧊 **3D** | real objects with the angle: **ramp against a wall** (complementary), **door** (supplementary), **laptop lid** (linear pair), **scissors** (vertically opposite), **clock hands** — drag to turn, slider for the angle | hand-written 3D drawing — free, offline |
+
+- **➕ More real-life examples (≈ 0.2 ¢)** — two new everyday examples for that concept, then photos for them.
+- **🔎 Find photos now** — looks for photos for every example still without one (free).
+- **🚫 Wrong photo** (under each photo) — removes it from the lesson; it is never chosen again for that search.
+
+**A PDF with two chapters** (like *Class 7 Maths — 3rd and 4th chapter*) gets **one lesson per chapter**: the
+chapter starts are found on the pages ("3 HCF and LCM" on page 1, "4 Angles and Pairs of Angles" on page 10 — the
+numbers must follow on), and each lesson is written only from its own pages.
+
+**Checked answers — only when certain.** The app re-computes an answer only when the question clearly asks for that
+operation, and replaces the AI's answer only when the comparison is certain. Word problems ("the product of two
+numbers is 1280 and their GCD is 4…", "reduce 209/247 to its simplest form", "how many … after …") are shown as in
+the textbook, never "corrected".
+
+**Measured on Class 7 Maths ch. 3–4 (19 pages, end to end on a copy of the data):** text read from the PDF (no OCR),
+18 pages auto-checked + 1 flagged, indexed in ≈ 5 min (local, free); 2 lessons (13 concepts) for 3.6 ¢; all 15
+computed answers agree with the textbook, no false warnings; photos found for 34 of 38 real-life examples in ≈ 9 min
+(free), 24 of 27 distinct photos clearly right on inspection. **Look at the photos once before class** and use
+🚫 Wrong photo where needed.
+
+**How the photos are chosen** (all automatic, no cost): the app searches Wikimedia Commons (and Wikidata for
+named things; Openverse only as a fallback because it allows few anonymous searches per hour), skips anything that
+is not a free licence or not a photo (no SVG/HTML), downloads only small thumbnails (≤ 1.5 MB), then the **local
+vision model** (qwen3-vl, on your laptop) describes each photo and the description must match the wanted subject —
+wrong pictures are rejected. Only these websites are ever contacted (allow-list), with a polite User-Agent. Photos
+are stored in `data/media/` and reused. Switch off with `ATS_MEDIA_SEARCH=false`.
+
+**Teach Mode** shows one slide per concept with the same toolbar (bigger text) after the sections.
+
+**About free AI image / 3D models for maths** (FLUX, Stable Diffusion, TripoSR, Hunyuan3D, SV3D): image models
+draw numbers, angles and labels wrongly, and the 3D ones need 6–20 GB of graphics memory (your laptop has 4 GB), so
+maths pictures are drawn by code from computed values; real-life pictures are real photos (blueprint D41–D44).
 
 ## 3d. 3D Chemistry Lab — electrons and atoms in motion (free, no AI)
 
@@ -320,7 +394,7 @@ illustrations (blueprint D33).
 ## 8. Development
 
 ```
-uv run pytest            # 270 automated tests (offline, no cost; browser tests use Edge/Chrome if present)
+uv run pytest            # 330 automated tests (offline, no cost; browser tests use Edge/Chrome if present)
 uv run ruff check .      # lint
 uv run ruff format .     # format
 ```

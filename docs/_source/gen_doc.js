@@ -1,4 +1,4 @@
-// Builds docs/AI_Teaching_Studio_Project_Blueprint_v1.9.docx
+// Builds docs/AI_Teaching_Studio_Project_Blueprint_v1.11.docx
 const fs = require('fs');
 const path = require('path');
 const {
@@ -9,7 +9,7 @@ const {
 
 const ROOT = process.argv[2];
 const DIAG = path.join(ROOT, 'docs', 'diagrams');
-const OUTFILE = path.join(ROOT, 'docs', 'AI_Teaching_Studio_Project_Blueprint_v1.9.docx');
+const OUTFILE = path.join(ROOT, 'docs', 'AI_Teaching_Studio_Project_Blueprint_v1.11.docx');
 
 const BLUE = '1F3A93', INK = '1F2937', MUTE = '4B5563';
 const PORTRAIT_W = 9026, LANDSCAPE_W = 14678;
@@ -93,7 +93,7 @@ function figure(name, maxW, maxH, caption) {
 }
 const pb = () => new Paragraph({ children: [new PageBreak()] });
 
-const header = () => ({ default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'AI Teaching Studio — Project Blueprint v1.9', size: 16, color: MUTE })] })] }) });
+const header = () => ({ default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'AI Teaching Studio — Project Blueprint v1.11', size: 16, color: MUTE })] })] }) });
 const footer = () => ({ default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Page ', size: 16, color: MUTE }), new TextRun({ children: [PageNumber.CURRENT], size: 16, color: MUTE })] })] }) });
 const portrait = children => ({ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } }, headers: header(), footers: footer(), children });
 const landscape = children => ({ properties: { page: { size: { width: 11906, height: 16838, orientation: PageOrientation.LANDSCAPE }, margin: { top: 1080, bottom: 1080, left: 1080, right: 1080 } } }, headers: header(), footers: footer(), children });
@@ -106,7 +106,7 @@ sections.push(portrait([
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'AI Teaching Studio', bold: true, size: 64, color: BLUE })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 200, after: 600 }, children: [new TextRun({ text: 'Project Blueprint: Requirements, Architecture, Workflows & Execution Plan', size: 30, color: INK })] }),
-  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Version 1.9 — history lessons: timeline, map, causes & effects', size: 24, color: MUTE })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Version 1.11 — maths lessons with real-life photos, 2D and 3D pictures', size: 24, color: MUTE })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '3 October 2026', size: 24, color: MUTE })] }),
   new Paragraph({ spacing: { before: 1600 }, children: [] }),
   ...table(['Item', 'Detail'], [
@@ -121,7 +121,9 @@ sections.push(portrait([
   ...table(['Version', 'Date', 'Change', 'Status'], [
     ['1.0', '03-Oct-2026', 'First complete blueprint: requirements from owner answers, architecture, model strategy, workflows, phased plan', 'Superseded'],
     ['1.1', '03-Oct-2026', 'Owner security guidelines after the March 2026 LiteLLM supply-chain incident: new Section 14 (pinning, hash-locked installs, API-key isolation, egress control); updates to stack, setup steps, NFR-06, Phase 0, risks and decisions D10–D11', 'Superseded'],
-    ['1.9', '07-Oct-2026', 'History lessons (§8.6, D34–D37): two-column reading order, whole-chapter lesson writing without exercise pages, timeline/period/people/place/cause-effect extraction checked against the textbook, offline map of India (Natural Earth India view + GeoNames), textbook pictures with captions, history player; tested end to end on Class 9 History Ch. 4', 'Current'],
+    ['1.11', '09-Oct-2026', 'Maths lessons (§8.6, D41–D44): concepts with the textbook’s examples re-computed by the app (HCF, LCM, primes, angle pairs, one-variable equations), hand-written 2D/3D maths player (factor tree, Venn, division, runners, sieve, balance, drag-the-ray angles, 3D ramp/door/laptop/scissors/clock), real-life examples with free-licence photos found on Wikimedia Commons / Wikidata / Openverse and checked by the local vision model, Visualise toolbar in Lesson Studio and Teach Mode; a file with several chapters split into one lesson per chapter; answers judged only when certain; tested end to end on Class 7 Maths Ch. 3–4 (2 lessons, 3.6 ¢; photos for 34 of 38 examples, free)', 'Current'],
+    ['1.10', '09-Oct-2026', 'Autopilot (§8.6, D38–D40): automatic page quality check, clean pages searchable at once, chapter title detection, one draft lesson per chapter written automatically (whole chapter), flagged pages listed with reasons and a cloud re-read on request, rebuild notice; tested end to end (history chapter: 3 jobs, ≈ 2 min, 2.6 ¢, no clicks)', 'Superseded'],
+    ['1.9', '07-Oct-2026', 'History lessons (§8.6, D34–D37): two-column reading order, whole-chapter lesson writing without exercise pages, timeline/period/people/place/cause-effect extraction checked against the textbook, offline map of India (Natural Earth India view + GeoNames), textbook pictures with captions, history player; tested end to end on Class 9 History Ch. 4', 'Superseded'],
     ['1.8', '07-Oct-2026', '3D Chemistry Lab (electron transfer, electron sharing, atoms rearranging — computed, no AI), simulations tested in a real browser + picture review, p5.js 2 fix, ready-made experiment setups, review of free image/3D AI models (§8.6, D30–D33); all 5 simulations regenerated', 'Superseded'],
     ['1.7', '05-Oct-2026', 'Labelled 3D molecules (atom symbols + charges, ion tags, legend, charge note) and fix for ions hidden inside each other (§8.6, D29)', 'Superseded'],
     ['1.6', '05-Oct-2026', 'Lab kit for simulations after the owner’s review (overlapping labels, no stir animation): §8.6 extended, decision D28, folder structure; all 5 lesson simulations regenerated', 'Superseded'],
@@ -510,6 +512,26 @@ sections.push(portrait([
     ['3D Chemistry Lab (`reactions.py` + `assets/chem3d.js`)', 'Ionic bonds (electron transfer, ions, attraction), covalent bonds (shared pairs, full shells) and reactions (bonds break, atoms move, atom count and charge stay equal). Electrons keep their atom’s colour. Computed from Z (2, 8, 8, 2), the reviewed molecule table and balanced equations — no AI, no cost; unsupported cases get a reason. Shown in Lesson Studio, Teach Mode and the new 3D Chemistry Lab page.'],
   ], [2.6, 5.4]),
   P('**Free AI image / 3D models — evaluated, not adopted for chemistry (D33):** image generators (Gemini, GPT-4o images, FLUX, Stable Diffusion, Leonardo) draw *pictures*; they regularly get electron counts, charges and text labels wrong and are not interactive, so they cannot teach valency precisely. Stable Video 3D needs far more graphics memory than the laptop’s 4 GB (one user measured ≈ 19.5 GB peak on a 24 GB card); FLUX needs a larger card too; Stable Diffusion 1.5 runs on 4 GB but slowly. They remain an option later for decorative, clearly-marked illustrations only.'),
+  H3('Autopilot: upload a chapter, get a draft lesson (added 09-Oct-2026)'),
+  P('**Owner’s problem:** every new chapter needed manual review of each page, a click to index and a lesson created by hand — the owner had been sending PDFs to Claude to get the careful treatment. **Owner’s decisions:** clean pages automatic, others wait; one lesson per chapter automatically; cloud re-read only on request.'),
+  ...table(['Step', 'What happens automatically'], [
+    ['Quality check (`ingestion/quality.py`)', 'Each page: no/very little text, unreadable font characters, mostly symbols, split words, OCR warnings, tables read by the local OCR, Marathi/Hindi text → ⚠️ with the reason; else ✅. Exercise pages are labelled. On the owner’s chapters: history 8/8 clean; scanned science 4 of 17 flagged (all with local-OCR tables — where tables went wrong before).'],
+    ['Clean pages searchable (`IngestionService.autopilot_check`)', 'Marked reviewed (🤖 auto-checked, shown separately from the teacher’s ✅) and indexed; a teacher edit or review replaces the automatic mark. Cloud re-read pages are checked again.'],
+    ['Chapter title', 'Found on page 1 (“4 Economic Development” → Economic Development); all 3 of the owner’s chapters were found correctly.'],
+    ['Lesson (`LessonService.auto_create_for_document`)', 'One draft lesson per chapter, once, from the whole chapter (also for science); the teacher approves. Pages reviewed later → “became searchable after this lesson” notice with Rebuild.'],
+  ], [2.6, 5.4]),
+  P('**End-to-end (copy of the data, history chapter treated as a new upload):** extract → check (8/8 clean) → index → lesson in 129 s with no clicks, 2.6 ¢: 4 sections (pages 1–7), 12 timeline events, 9 plans, 10 people, 16 places, 3 cause-effect charts. 284 automated tests pass.'),
+  H3('Maths lessons with real-life photos, 2D and 3D pictures (added 09-Oct-2026, tested on Class 7 Maths Ch. 3–4)'),
+  P('**Owner’s request:** very dynamic visual teaching per subject — for maths, 2D/3D pictures of algebra and geometry and where, why and how each idea is used in real life; buttons for real-life examples with images, 2D and 3D; photos taken from Wikimedia and other free internet sources by tools attached to the project; free (Hugging Face) models considered. **Owner’s choice:** maths first; history story map, English, geography and physics follow.'),
+  ...table(['Part', 'What it does / what was measured'], [
+    ['Maths lesson plan (`maths.py`, `planner.lesson_profile`)', 'Concepts in textbook order with the textbook’s worked examples (numbers, angles, equations), explanation and 2–3 everyday Indian real-life examples, each with a concrete photo phrase. ≈ 1.8 ¢ per chapter (gpt-5.4-mini).'],
+    ['Answers re-computed (`maths.verify`, `check_example`, `solve_linear`)', 'HCF, LCM, prime factors, co-primes, twin primes, complement/supplement, one-variable linear equations with step-by-step reasons. A wrong AI answer is replaced only when the comparison is certain; word problems and questions that do not name the operation are shown as written. First run: 3 correct answers were wrongly “corrected” (a reverse GCD/LCM question, a fraction to simplify, an equation whose answer was the two angles) — rules tightened; final run: all 15 computed answers agree with the book, no false warnings.'],
+    ['Chapters inside one file (`quality.find_chapters`, `LessonService.page_range`)', 'Chapter starts found on the pages (number + title, numbers must follow on, first on page 1). The owner’s file “3rd and 4th chapter” → HCF and LCM (pages 1–9) and Angles and Pairs of Angles (pages 10–19): two lessons, each from its own pages. The other 4 files stay single chapters.'],
+    ['Maths player (`assets/mathkit.js`, `viewers.math_html`)', 'Hand-written, offline: factor tree, Venn of prime factors (HCF/LCM; co-primes), Euclid division, runners meeting after the LCM, sieve/twin primes, balance scale with equation steps, drag-the-ray angles, triangle with draggable corner (sum 180°, exterior angle), polygon split into triangles, and a tiny 3D renderer for a ramp, door, laptop, scissors and clock (drag to turn, angle slider). Every scene screenshotted and checked by eye.'],
+    ['Real-life photos (`app/media/finder.py`, job “media”)', 'Wikidata P18 for named things, Wikimedia Commons search, Openverse fallback; CC0/PD/CC BY/CC BY-SA only; allow-listed hosts; titles with logo/icon/map/chart skipped; thumbnails ≤ 1.5 MB streamed with a 30 s limit (one Commons download once trickled for 19 minutes); 150 s per search. The local qwen3-vl describes each photo; the description must match the phrase by meaning (embedding similarity, calibrated). Credit line always shown; teacher can reject a photo.'],
+    ['Lesson Studio / Teach Mode', 'Tab “Concepts & visuals”: per concept explanation, checked examples and a Visualise toolbar (🌍 Real life · 🖼️ Photos · 📐 2D · 🧊 3D), “More real-life examples” (≈ 0.2 ¢), “Find photos now”, “Wrong photo”. Teach Mode: one slide per concept with the same toolbar.'],
+  ], [2.6, 5.4]),
+  P('**End-to-end result (copy of the data):** 19 pages from the text layer (18 auto-checked, 1 flagged), indexed in ≈ 5 min (local), 2 lessons with 13 concepts for 3.6 ¢; photos for 34 of 38 examples in ≈ 9 min (free), 24 of 27 distinct photos clearly right on inspection (one publisher logo → title rule added). Lesson Studio and Teach Mode rendered the real lessons without errors. **Free 3D/image generators were evaluated and not used for maths (D42):** TripoSR needs ≈ 6 GB, Hunyuan3D ≥ 10 GB and SV3D ≈ 20 GB of graphics memory (the laptop has 4 GB), and image models draw numbers and angles wrongly.'),
   H3('History lessons (added 07-Oct-2026, tested end to end on Class 9 History Ch. 4 “Economic Development”)'),
   P('**Owner’s request:** apps for history, geography, physics and maths chapters; first test with a history chapter, checked end to end. **Design:** the AI only extracts facts from the reviewed chapter; every fact is checked against the textbook text; all pictures are drawn by hand-written code or taken from the textbook itself.'),
   ...table(['Part', 'What it does / what was measured'], [
@@ -549,6 +571,7 @@ sections.push(portrait([
     ['LLMCall †', 'task, model, input/output tokens, cost (USD), cached, success, latency, time', 'Cost dashboard and budget guard'],
     ['CacheEntry †', 'key (task + model + prompt hash), response, created', 'Never pay twice for the same request'],
     ['AnswerCache †', 'question, question vector, scope (filters + language), index version, answer, sources', 'Reuse answers to questions that mean the same'],
+    ['MediaAsset', 'search phrase, lesson, concept, source (commons/wikidata/openverse), page link, title, author, licence + link, SHA-256, local file, vision caption, fits, check note', 'Real-life photos with their credit line; rejected candidates kept so they are not checked twice'],
     ['IndexState †', 'generation (change counter)', 'Detect any change to the search index'],
   ], [2, 3.6, 2.4]),
 
@@ -571,7 +594,9 @@ sections.push(portrait([
     '│                   simulation.py · viewers.py · service.py',
     '│                   browser_check.py · reactions.py (3D scenes)',
     '│                   history.py · geo.py · figures.py (history lessons)',
-    '├── assets/        labkit.js · labkit_example.js · chem3d.js · historykit.js',
+    '│                   maths.py (maths lessons)',
+    '│   ├── media/      finder.py (free-licence photos, checked locally)',
+    '├── assets/        labkit.js · labkit_example.js · chem3d.js · historykit.js · mathkit.js',
     '│                   geo/ (map + places, SHA-256) · vendor/ (p5, 3Dmol, SHA-256)',
     '├── ui/             Home.py · common.py · pages/1_…7_*.py',
     '├── config/         models.yaml',
@@ -714,6 +739,13 @@ sections.push(portrait([
     ['D30', 'Every new simulation is run in a hidden Edge/Chrome (all controls used) and its pictures are reviewed by a vision model before the teacher sees it', 'p5.js 2 crash found by owner; visual faults found in screenshots', '07-Oct-2026'],
     ['D31', 'Lab kit provides hand-drawn apparatus and complete setups (electrolysis, heating, conductivity, neutralisation); the AI places and switches them', 'Measured: AI-drawn glassware was wrong in several ways', '07-Oct-2026'],
     ['D32', '3D bonding and reaction scenes are computed (shells, table, balanced equation) and drawn by a hand-written player — no AI, no new library', 'Owner’s request: see valency electrons move', '07-Oct-2026'],
+    ['D38', 'Autopilot: pages passing an explainable automatic quality check count as reviewed and become searchable; flagged pages wait for the teacher with reasons (owner’s choice; switch: ATS_AUTO_REVIEW_CLEAN)', 'Owner: “every time I need to share the PDF” — 08-Oct-2026', '09-Oct-2026'],
+    ['D39', 'Autopilot writes one draft lesson per chapter from the whole chapter as soon as pages are searchable; approval stays manual (switch: ATS_AUTO_LESSON)', 'Owner’s choice', '09-Oct-2026'],
+    ['D40', 'Cloud re-read of flagged scanned pages only on the teacher’s click, with the cost shown', 'Owner’s choice', '09-Oct-2026'],
+    ['D41', 'Maths lessons: the AI only extracts concepts, the textbook’s examples and real-life ideas; every computable answer (HCF, LCM, primes, angle pairs, linear equations) is re-computed by code and wrong AI answers are replaced and listed', 'Owner: maths first; accuracy rule as for history (D35)', '09-Oct-2026'],
+    ['D42', 'Maths 2D and 3D pictures are drawn by a hand-written player (mathkit.js) from computed values — no AI image or 3D generators', 'Image models mis-draw numbers/angles; TripoSR ≈ 6 GB, Hunyuan3D ≥ 10 GB, SV3D ≈ 20 GB VRAM vs 4 GB', '09-Oct-2026'],
+    ['D43', 'Real-life photos only from Wikimedia Commons / Wikidata (Openverse as fallback), free licences only (CC0, PD, CC BY, CC BY-SA), allow-listed hosts, thumbnails ≤ 1.5 MB, credit line always shown', 'Owner: “upload from Wikimedia, common places from internet using tools”', '09-Oct-2026'],
+    ['D44', 'Every photo is checked by the local vision model: its caption must match the wanted subject by meaning (embedding similarity ≥ 0.72, or ≥ 0.60 when it also says yes)', 'Measured: the 2B model’s yes/no contradicted its own caption; calibrated on 12 pairs', '09-Oct-2026'],
     ['D34', 'Lessons get a subject profile (history / science); history lessons read the whole chapter (exercise passages removed) and extract timeline, periods, people, places and causes-effects', 'Measured: topic search missed 5 of 8 pages; exercise page has deliberately wrong pairs', '07-Oct-2026'],
     ['D35', 'Every history fact shown is checked against the cited textbook text (date numbers + month + event words together; names present); unproven items are removed and listed', 'AI paired a real year with the wrong event in the first test', '07-Oct-2026'],
     ['D36', 'Maps offline: Natural Earth India point-of-view boundaries (public domain) + GeoNames places (CC BY 4.0); a place is drawn only when unambiguous (major town, or within 40 km of a named city), else the teacher gives a hint', 'Wrong villages were chosen with state-only hints in testing', '07-Oct-2026'],
@@ -754,7 +786,7 @@ sections.push(portrait([
 // ---------- document ----------
 const doc = new Document({
   creator: 'Claude Code for Santosh',
-  title: 'AI Teaching Studio — Project Blueprint v1.9',
+  title: 'AI Teaching Studio — Project Blueprint v1.11',
   description: 'Requirements, architecture, workflows and execution plan',
   features: { updateFields: true },
   styles: {

@@ -11,6 +11,9 @@ from sqlalchemy import Engine
 COLUMNS: list[tuple[str, str, str]] = [
     ("chunk", "kind", "VARCHAR NOT NULL DEFAULT 'text'"),
     ("job", "lesson_id", "INTEGER"),
+    ("page", "quality", "VARCHAR NOT NULL DEFAULT ''"),
+    ("page", "quality_notes", "VARCHAR NOT NULL DEFAULT '[]'"),
+    ("page", "auto_reviewed", "BOOLEAN NOT NULL DEFAULT 0"),
 ]
 
 

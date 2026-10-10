@@ -7,10 +7,18 @@ import streamlit.components.v1 as components
 
 from app.lessons.figures import figures_for, portrait_of
 from app.lessons.history import flow_scenes, map_scene, timeline_scene
+from app.lessons.maths import KINDS, visuals_for
 from app.lessons.molecules import build
 from app.lessons.reactions import SceneError, build_scene, lesson_scene_sources
 from app.lessons.simulation import VISUAL_PREFIX, blocking
-from app.lessons.viewers import VendorFileError, chem3d_html, history_html, molecule_html, simulation_html
+from app.lessons.viewers import (
+    VendorFileError,
+    chem3d_html,
+    history_html,
+    math_html,
+    molecule_html,
+    simulation_html,
+)
 
 
 def render_equations(plan: dict, big: bool = False) -> None:
@@ -227,3 +235,111 @@ def render_simulation(lesson, height: int = 640) -> None:
         components.html(simulation_html(lesson.simulation_js), height=height, scrolling=True)
     except VendorFileError as err:
         st.error(str(err))
+
+
+# ---------------------------------------------------------------- maths lessons (concepts + Visualise toolbar)
+
+VIEWS = {"real": "🌍 Real life", "photos": "🖼️ Photos", "2d": "📐 2D", "3d": "🧊 3D"}
+
+
+def concept_views(concept: dict, photos: list) -> list[str]:
+    """Which Visualise buttons a concept gets (only views that have something to show)."""
+    scenes = visuals_for(concept)
+    views = []
+    if concept.get("real_life"):
+        views.append("real")
+    if photos:
+        views.append("photos")
+    views += [dim for dim in ("2d", "3d") if any(sc["dim"] == dim for sc in scenes)]
+    return views
+
+
+def render_examples(concept: dict, big: bool = False) -> None:
+    for example in concept.get("examples", []) or []:
+        line = example.get("text", "") or example.get("equation", "")
+        if not line:
+            continue
+        computed = example.get("computed")
+        mark = ""
+        if computed:
+            mark = f" → **{computed}** ✅ *checked by the app*"
+        size = "1.3rem" if big else "1rem"
+        st.markdown(f"<div style='font-size:{size}'>✏️ {_html(line)}</div>", unsafe_allow_html=True)
+        if mark:
+            st.markdown(mark)
+
+
+def credit_line(asset) -> str:
+    """Attribution required by CC BY / CC BY-SA: title, author, licence (linked) and the source page."""
+    licence = f"[{asset.license}]({asset.license_url})" if asset.license_url else asset.license
+    author = f" — {asset.author}" if asset.author else ""
+    source = {"commons": "Wikimedia Commons", "wikidata": "Wikimedia Commons", "openverse": "Openverse"}.get(
+        asset.source, asset.source
+    )
+    return f"[{asset.title}]({asset.page_url}){author} · {licence} · {source}"
+
+
+def render_photo(asset, data_dir, width: int | str = "stretch", on_reject=None, key: str = "") -> None:
+    st.image(str(data_dir / asset.local_path), width=width)
+    st.caption("📷 " + credit_line(asset))
+    if on_reject and st.button(
+        "🚫 Wrong photo", key=f"reject_{key}_{asset.id}", help="Remove it from this lesson"
+    ):
+        on_reject(asset.id)
+        st.rerun()
+
+
+def render_concept(
+    concept: dict, index: int, photo_lookup, data_dir, big: bool = False, key: str = "", on_reject=None
+) -> None:
+    """One concept: explanation, the textbook's examples (answers re-computed), then the Visualise toolbar."""
+    kind = KINDS.get(concept.get("kind", ""), "")
+    if big:  # a Teach Mode slide
+        st.title(concept.get("name", ""))
+    else:
+        st.markdown(f"#### {concept.get('name', '')}")
+    if kind:
+        st.caption(kind)
+    if concept.get("explain"):
+        st.markdown(concept["explain"])
+    render_examples(concept, big)
+    if concept.get("pages"):
+        st.caption("📖 Textbook page(s): " + ", ".join(map(str, concept["pages"])))
+    stories = concept.get("real_life", []) or []
+    photos = {i: photo_lookup(item.get("photos", [])) for i, item in enumerate(stories)}
+    every_photo = [a for group in photos.values() for a in group]
+    views = concept_views(concept, every_photo)
+    if not views:
+        return
+    view = st.segmented_control(
+        "Visualise", views, format_func=VIEWS.get, default=views[0], key=f"view_{key}_{index}"
+    )
+    scenes = visuals_for(concept)
+    if view == "real":
+        for number, item in enumerate(stories):
+            left, right = st.columns([3, 2]) if photos.get(number) else (st.container(), None)
+            with left:
+                st.markdown(f"**{item.get('title', '')}**")
+                st.markdown(item.get("story", ""))
+            if right is not None:
+                with right:
+                    render_photo(photos[number][0], data_dir, on_reject=on_reject, key=f"{key}_{index}_r")
+            elif "photos" not in item and item.get("image_query"):
+                st.caption(f"🔎 A photo of '{item['image_query']}' is being looked for…")
+    elif view == "photos":
+        columns = st.columns(min(3, len(every_photo)))
+        for number, asset in enumerate(every_photo):
+            with columns[number % len(columns)]:
+                render_photo(asset, data_dir, on_reject=on_reject, key=f"{key}_{index}_p")
+    elif view in {"2d", "3d"}:
+        chosen = [sc for sc in scenes if sc["dim"] == view]
+        if len(chosen) > 1:
+            names = [sc["title"] for sc in chosen]
+            pick = st.radio("Picture", names, horizontal=True, key=f"pick_{key}_{index}_{view}")
+            chosen = [chosen[names.index(pick)]]
+        height = 640 if big else 560
+        components.html(math_html(chosen[0], height=height, big=big), height=height + 40)
+
+
+def _html(text: str) -> str:
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

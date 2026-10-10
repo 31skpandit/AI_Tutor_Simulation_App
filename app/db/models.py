@@ -81,6 +81,10 @@ class Page(SQLModel, table=True):
     model_ref: str | None = None
     reviewed: bool = False
     indexed: bool = False  # True when the current `text` is in the search index
+    # Autopilot (app/ingestion/quality.py): clean | check | '' (not checked yet); reasons as a JSON list
+    quality: str = ""
+    quality_notes: str = "[]"
+    auto_reviewed: bool = False  # True = marked reviewed by the automatic check, not (yet) by the teacher
     updated_at: datetime = Field(default_factory=utcnow)
 
 
@@ -148,6 +152,27 @@ class Lesson(SQLModel, table=True):
     error: str | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
+
+
+class MediaAsset(SQLModel, table=True):
+    """A real photo found for a lesson (Wikimedia Commons / Wikidata / Openverse), stored offline with its credit."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    query: str = Field(index=True)  # what was searched, e.g. 'railway level crossing gate'
+    lesson_id: int | None = Field(default=None, index=True)
+    concept: str = ""  # concept name it illustrates
+    source: str = ""  # commons | wikidata | openverse
+    page_url: str = ""  # the file's page (for the credit link)
+    title: str = ""
+    author: str = ""
+    license: str = ""  # e.g. 'CC BY-SA 4.0', 'Public domain'
+    license_url: str = ""
+    sha256: str = Field(default="", index=True)
+    local_path: str = ""  # relative to the data folder
+    caption: str = ""  # what the vision check saw
+    fits: bool = False  # passed the relevance check
+    check_note: str = ""
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class Job(SQLModel, table=True):

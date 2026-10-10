@@ -9,7 +9,7 @@ source/
 
 # Runtime data (database, vector store, uploads, generated media, logs)
 data/
-media/
+/media/
 logs/
 
 # Python / tooling

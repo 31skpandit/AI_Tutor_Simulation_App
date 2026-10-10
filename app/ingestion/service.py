@@ -6,6 +6,7 @@
 Every step is idempotent: running it again never repeats finished work.
 """
 
+import json
 import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -22,6 +23,7 @@ from app.ingestion.enrich import enrich_page
 from app.ingestion.extract import count_pages, iter_pages, page_image
 from app.ingestion.files import file_kind, guess_metadata, sha256_bytes, sha256_file, unique_target
 from app.ingestion.ocr import clean_ocr_text, normalize_markdown_tables, ocr_page
+from app.ingestion.quality import assess, guess_chapter_title
 from app.llm.router import AllModelsFailed, LLMRouter
 from app.rag.store import VectorStore
 
@@ -215,10 +217,46 @@ class IngestionService:
         status = "failed" if stats["failed"] else "review"
         message = f"{stats['failed']} page(s) failed — open Review to retry" if stats["failed"] else None
         self._set_status(document_id, status, message)
-        if status == "review" and not self.settings.require_review:
-            self.enqueue("index", document_id, options="include_unreviewed")
+        self._guess_chapter_title(document_id)
+        if not self.settings.require_review:
+            if status == "review":
+                self.enqueue("index", document_id, options="include_unreviewed")
+        else:
+            stats.update(self.autopilot_check(document_id))
         logger.info(f"Extracted document {document_id}: {stats}")
         return stats
+
+    # ------------------------------------------------------------ autopilot (automatic quality check)
+    def autopilot_check(self, document_id: int) -> dict:
+        """Check every extracted page (app/ingestion/quality.py). With `auto_review_clean`, pages that pass count as
+        reviewed and indexing is queued; flagged pages wait for the teacher. Pages the teacher reviewed are kept."""
+        counts = {"clean": 0, "to_check": 0}
+        waiting = 0  # reviewed pages not yet searchable
+        with Session(self.engine) as s:
+            pages = s.exec(select(Page).where(Page.document_id == document_id, Page.status == "done")).all()
+            for page in pages:
+                result = assess(page.text, page.method, page.error)
+                page.quality = result.status
+                page.quality_notes = json.dumps(result.reasons, ensure_ascii=False)
+                counts["clean" if result.status == "clean" else "to_check"] += 1
+                if self.settings.auto_review_clean and result.status == "clean" and not page.reviewed:
+                    page.reviewed, page.auto_reviewed = True, True
+                waiting += page.reviewed and not page.indexed
+                s.add(page)
+            s.commit()
+        self._refresh_status(document_id)
+        if self.settings.auto_review_clean and waiting:
+            self.enqueue("index", document_id)
+        return counts
+
+    def _guess_chapter_title(self, document_id: int) -> None:
+        document = self._document(document_id)
+        if document.chapter_title:
+            return
+        first = next((p for p in self.pages(document_id) if p.status == "done"), None)
+        title = guess_chapter_title(first.text) if first else ""
+        if title:
+            self.update_metadata(document_id, chapter_title=title)
 
     # ------------------------------------------------------------ review
     def update_page(self, document_id: int, page_no: int, text: str, *, reviewed: bool) -> Page:
@@ -228,6 +266,7 @@ class IngestionService:
                 page.text = text
                 page.indexed = False
             page.reviewed = reviewed
+            page.auto_reviewed = False  # from now on this page is the teacher's decision
             page.updated_at = utcnow()
             s.add(page)
             s.commit()
@@ -244,6 +283,7 @@ class IngestionService:
             ).all()
             for page in pages:
                 page.reviewed = True
+                page.auto_reviewed = False
                 page.updated_at = utcnow()
                 s.add(page)
             s.commit()
@@ -348,6 +388,8 @@ class IngestionService:
             stats["pages"] += 1
         progress(1.0, "Cloud re-read finished")
         self._refresh_status(document_id)
+        if self.settings.require_review and stats["pages"]:
+            self.autopilot_check(document_id)  # re-read pages that now pass become searchable automatically
         return stats
 
     # ------------------------------------------------------------ indexing
@@ -502,6 +544,8 @@ class IngestionService:
                 "failed": count(Page.status == "failed"),
                 "reviewed": count(Page.reviewed == True),  # noqa: E712
                 "indexed": count(Page.indexed == True),  # noqa: E712
+                "to_check": count(Page.quality == "check", Page.reviewed == False),  # noqa: E712
+                "auto_reviewed": count(Page.auto_reviewed == True),  # noqa: E712
             }
 
     # ------------------------------------------------------------ internals
